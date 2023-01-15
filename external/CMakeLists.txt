@@ -88,4 +88,6 @@ set_target_properties(TINYXML2
     FOLDER "Libraries"
 )
 
+### ASSIMP ###
+add_subdirectory(assimp)
 

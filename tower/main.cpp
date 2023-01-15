@@ -12,6 +12,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include <assimp/Importer.hpp>
+#include <common/animation.h>
+
 // Shader loading utilities and other
 #include <common/shader.h>
 #include <common/util.h>
@@ -228,6 +234,23 @@ void createContext() {
 
 	quad = new Drawable(quadVertices, quadUVs);
 
+
+	//  ANIMATION
+	first_animation = new Animation("../Models/monkey_with_anim.dae");
+	first_animation->loadTexture("../Models/Texture_0.jpg");
+
+	assimp_shader = loadShaders("../shaders/assimp.vertexshader", "../shaders/assimp.fragmentshader");
+	model_mat_location = glGetUniformLocation(assimp_shader, "model");
+	view_mat_location = glGetUniformLocation(assimp_shader, "view");
+	proj_mat_location = glGetUniformLocation(assimp_shader, "proj");
+	printf("monkey bone count %i\n", first_animation->bone_count);
+
+	char name[64];
+	for (int i = 0; i < MAX_BONES; i++) {
+		sprintf(name, "bone_matrices[%i]", i);
+		bone_matrices_locations[i] = glGetUniformLocation(assimp_shader, name);
+		glUniformMatrix4fv(bone_matrices_locations[i], 1, GL_FALSE, identity_mat4().m);
+	}
 
 
 	// ---------------------------------------------------------------------------- //

@@ -77,6 +77,7 @@ include_directories(
   external/Simple-OpenGL-Image-Library/include/
   external/tinyxml2/include/
   external/tinyobjloader/include/
+  external/assimp/include/
   .
   )
 
@@ -126,6 +127,11 @@ add_executable(tower
   common/texture.h
   common/light.cpp
   common/light.h
+  common/animation.cpp
+  common/animation.h
+  common/maths_funcs.cpp
+  common/maths_funcs.h
+
 
   tower/ShadowMapping.fragmentshader
   tower/ShadowMapping.vertexshader
@@ -133,6 +139,8 @@ add_executable(tower
   tower/Depth.vertexshader
   tower/SimpleTexture.fragmentshader
   tower/SimpleTexture.vertexshader
+  tower/assimp.fragmentshader
+  tower/assimp.vertexshader
   )
 target_link_libraries(tower
   ${ALL_LIBS}
