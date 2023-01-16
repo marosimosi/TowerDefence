@@ -90,4 +90,3 @@ set_target_properties(TINYXML2
 
 ### ASSIMP ###
 add_subdirectory(assimp)
-

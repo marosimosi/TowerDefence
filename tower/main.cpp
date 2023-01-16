@@ -77,6 +77,12 @@ GLuint depthFrameBuffer, depthTexture;
 
 Drawable* quad;
 
+Animation* first_animation;
+GLuint assimp_shader;
+GLuint model_mat_location, view_mat_location, proj_mat_location;
+GLuint bone_matrices_locations[MAX_BONES];
+GLuint textureSampler;
+
 // locations for shaderProgram
 GLuint viewMatrixLocation;
 GLuint projectionMatrixLocation;
@@ -236,10 +242,10 @@ void createContext() {
 
 
 	//  ANIMATION
-	first_animation = new Animation("../Models/monkey_with_anim.dae");
-	first_animation->loadTexture("../Models/Texture_0.jpg");
+	first_animation = new Animation("monkey_with_anim.dae");
+	first_animation->loadTexture("diffuso.bmp");
 
-	assimp_shader = loadShaders("../shaders/assimp.vertexshader", "../shaders/assimp.fragmentshader");
+	assimp_shader = loadShaders("assimp.vertexshader", "assimp.fragmentshader");
 	model_mat_location = glGetUniformLocation(assimp_shader, "model");
 	view_mat_location = glGetUniformLocation(assimp_shader, "view");
 	proj_mat_location = glGetUniformLocation(assimp_shader, "proj");
@@ -445,7 +451,7 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	glUniform1i(useTextureLocation, 1);
 
-	plane->draw();
+	//plane->draw();
 
 	//TOWER
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &towerModelMatrix[0][0]);
@@ -460,7 +466,7 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	glUniform1i(useTextureLocation, 1);
 
-	tower->draw();
+	//tower->draw();
 
 	
 	//DRAGON
@@ -492,7 +498,7 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	glUniform1i(useTextureLocation, 1);
 
-	mountain->draw();
+	//mountain->draw();
 
 	//SPIDER
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &spiderModelMatrix[0][0]);
@@ -550,41 +556,51 @@ void mainLoop() {
 	mat4 light_proj = light->projectionMatrix;
 	mat4 light_view = light->viewMatrix;
 
-	// Task 3.3
-	// Create the depth buffer
+	double anim_time = 0.0;
 
 	do {
+		static double previous_seconds = glfwGetTime();
+		double current_seconds = glfwGetTime();
+		double elapsed_seconds = current_seconds - previous_seconds;
+		previous_seconds = current_seconds;
+
+		anim_time += elapsed_seconds * 200.0;
+		if (anim_time >= first_animation->anim_duration) {
+			anim_time = first_animation->anim_duration - anim_time; 
+		}
 
 		light->update();
 		mat4 light_proj = light->projectionMatrix;
 		mat4 light_view = light->viewMatrix;
 
-
-		// Task 3.5
 		// Create the depth buffer
 		depth_pass(light_view, light_proj);
 		
-
 		// Getting camera information
 		camera->update();
 		mat4 projectionMatrix = camera->projectionMatrix;
 		mat4 viewMatrix = camera->viewMatrix;
 
-		//lighting_pass(viewMatrix, projectionMatrix);
-		
-		// Task 1.5
-		// Rendering the scene from light's perspective when F1 is pressed
-		//*/
-		if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS) {
-			lighting_pass( light_view, light_proj );
-		}
-		else {
-			// Render the scene from camera's perspective
-			lighting_pass( viewMatrix, projectionMatrix );
-		}
-		//*/
+		lighting_pass(viewMatrix, projectionMatrix);
 
-		// Task 2.3:
+		// ANIMATION
+		glEnable(GL_DEPTH_TEST);
+		glUseProgram(assimp_shader);
+		glActiveTexture(GL_TEXTURE0);
+		first_animation->bindTexture();
+		glUniform1i(textureSampler, first_animation->Texture);
+		first_animation->bind();
+		first_animation->skeleton_animate(first_animation->root_node, anim_time,
+			identity_mat4(), first_animation->bone_offset_matrices, first_animation->bone_animation_mats);
+		first_animation->update();
+		glUniformMatrix4fv(model_mat_location, 1, GL_FALSE, &first_animation->modelMatrix[0][0]);
+		glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, &camera->viewMatrix[0][0]);
+		glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, &camera->projectionMatrix[0][0]);
+		glUniformMatrix4fv(bone_matrices_locations[0], first_animation->bone_count,
+			GL_FALSE, first_animation->bone_animation_mats[0].m);
+		first_animation->draw();
+
+	
 		renderDepthMap();
 
 

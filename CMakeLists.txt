@@ -77,7 +77,7 @@ include_directories(
   external/Simple-OpenGL-Image-Library/include/
   external/tinyxml2/include/
   external/tinyobjloader/include/
-  external/assimp/include/
+  external/assimp/include/assimp
   .
   )
 
@@ -87,6 +87,7 @@ set(ALL_LIBS
   GLEW_1130
   SOIL
   TINYXML2
+  assimp
   )
 
 add_definitions(
