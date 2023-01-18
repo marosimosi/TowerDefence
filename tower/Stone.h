@@ -4,6 +4,8 @@
 #include <glm/glm.hpp>
 #include <common/texture.h>
 
+
+
 class Drawable;
 class Stone {
 public:
@@ -11,6 +13,7 @@ public:
 	GLuint diffuseTexture;
 	GLuint specularTexture;
 	float hp, speed, damage, load_time;
+	glm::mat4 modelMatrix;
 
 	Stone();
 	~Stone();

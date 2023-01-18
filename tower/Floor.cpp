@@ -3,6 +3,15 @@
 #include <common/model.h>
 #include <iostream>
 #include <common/texture.h>
+// Include GLEW
+#include <GL/glew.h>
+
+// Include GLFW
+#include <glfw3.h>
+
+// Include GLM
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 
 using namespace glm;
@@ -43,6 +52,7 @@ Floor::Floor() {
 	floor = new Drawable(floorVertices, floorUVs, floorNormals);
 	diffuseTexture = loadSOIL("grounddif.jpg");
 	specularTexture = loadSOIL("groundspec.jpg");
+	modelMatrix = mat4();
 }
 
 Floor::~Floor() {
@@ -58,6 +68,7 @@ Mountain::Mountain() {
 	mountain = new Drawable("mountain.obj");
 	diffuseTexture = loadSOIL("mountaindif.jpg");
 	specularTexture = loadSOIL("groundspec.jpg");
+	modelMatrix = translate(mat4(), vec3(4, 0.01, 65)) * scale(mat4(), vec3(6, 6, 6)) * rotate(mat4(), radians(90.0f), vec3(0, 1, 0));
 }
 
 Mountain::~Mountain() {

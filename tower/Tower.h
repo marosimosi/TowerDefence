@@ -4,12 +4,14 @@
 #include <glm/glm.hpp>
 #include <common/texture.h>
 
+
 class Drawable;
 class Tower {
 public:
 	Drawable* tower;
 	GLuint diffuseTexture;
 	GLuint specularTexture;
+	glm::mat4 modelMatrix;
 
 	Tower();
 	~Tower();

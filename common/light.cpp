@@ -29,7 +29,8 @@ Light::Light(GLFWwindow* window,
 
 
     projectionMatrix = ortho(-30.0f, 30.0f, -30.0f, 30.0f, nearPlane, farPlane);
-    orthoProj = true;
+    //projectionMatrix = perspective(radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+    //orthoProj = true;
 }
 
 

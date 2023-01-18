@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <common/texture.h>
 
+
 class Drawable;
 class Spider {
 public:
@@ -11,6 +12,8 @@ public:
 	GLuint diffuseTexture;
 	GLuint specularTexture;
 	float hp, speed, damage, load_time;
+	glm::mat4 modelMatrix;
+	glm::mat4 instancing[2];
 
 	Spider();
 	~Spider();

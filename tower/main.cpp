@@ -101,16 +101,15 @@ GLuint lightFarPlaneLocation;
 GLuint lightNearPlaneLocation;
 GLuint offsets, shadowOffsets;
 
-mat4 stoneModelMatrix = translate(mat4(), vec3(12, 0, 0)) * scale(mat4(), vec3(0.5, 0.5, 0.5));
-mat4 planeModelMatrix = mat4();
-mat4 towerModelMatrix = scale(mat4(), vec3(0.7, 1, 0.7));
-mat4 dragonModelMatrix = translate(mat4(), vec3(-12, 10, 0)) * scale(mat4(), vec3(0.1, 0.1, 0.1));
-mat4 mountainModelMatrix = translate(mat4(), vec3(0, 0.01, -45)) * scale(mat4(), vec3(6, 6, 6)) * rotate(mat4(), radians(90.0f), vec3(0, 1, 0));
-mat4 spiderModelMatrix = translate(mat4(), vec3(-5, 0, 0)) * scale(mat4(), vec3(0.3, 0.3, 0.3)) * rotate(mat4(), radians(180.0f), vec3(0, 1, 0));
-mat4 skeletonModelMatrix = translate(mat4(), vec3(5, 0, 0));
-
-mat4 spiderInstancing[2] = { translate(mat4(), vec3(17, 0, -12)), translate(mat4(), vec3(0, 0, 0)) };
-mat4 skeletonInstancing[3] = { translate(mat4(), vec3(0, 0, 2)), translate(mat4(), vec3(-1.5, 0, 0)),  translate(mat4(), vec3(1.5, 0, 0)) };
+//mat4 stoneModelMatrix = translate(mat4(), vec3(12, 0, 0)) * scale(mat4(), vec3(0.5, 0.5, 0.5));
+//mat4 planeModelMatrix = mat4();
+//mat4 dragonModelMatrix = translate(mat4(), vec3(-12, 10, 0)) * scale(mat4(), vec3(0.1, 0.1, 0.1));
+//mat4 mountainModelMatrix = translate(mat4(), vec3(0, 0.01, -45)) * scale(mat4(), vec3(6, 6, 6)) * rotate(mat4(), radians(90.0f), vec3(0, 1, 0));
+//mat4 spiderModelMatrix = translate(mat4(), vec3(-5, 0, 0)) * scale(mat4(), vec3(0.3, 0.3, 0.3)) * rotate(mat4(), radians(180.0f), vec3(0, 1, 0));
+//mat4 skeletonModelMatrix = translate(mat4(), vec3(5, 0, 0));
+//
+//mat4 spiderInstancing[2] = { translate(mat4(), vec3(17, 0, -12)), translate(mat4(), vec3(0, 0, 0)) };
+//mat4 skeletonInstancing[3] = { translate(mat4(), vec3(0, 0, 2)), translate(mat4(), vec3(-1.5, 0, 0)),  translate(mat4(), vec3(1.5, 0, 0)) };
 
 // locations for depthProgram
 GLuint shadowViewProjectionLocation; 
@@ -242,7 +241,7 @@ void createContext() {
 
 
 	//  ANIMATION
-	first_animation = new Animation("monkey_with_anim.dae");
+	first_animation = new Animation("stone.dae");
 	first_animation->loadTexture("diffuso.bmp");
 
 	assimp_shader = loadShaders("assimp.vertexshader", "assimp.fragmentshader");
@@ -347,34 +346,34 @@ void depth_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	// ---- rendering the scene ---- //
 	//STONE
-	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &stoneModelMatrix[0][0]);
+	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &stone->modelMatrix[0][0]);
 	stone->draw();
 	
 	//PLANE
-	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &planeModelMatrix[0][0]);
+	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &plane->modelMatrix[0][0]);
 	plane->draw();
 
 	//TOWER
-	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &towerModelMatrix[0][0]);
+	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &tower->modelMatrix[0][0]);
 	tower->draw();
 
 	//MOUNTAIN
-	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &mountainModelMatrix[0][0]);
+	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &mountain->modelMatrix[0][0]);
 	mountain->draw();
 
 	//DRAGON
-	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &dragonModelMatrix[0][0]);
+	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &dragon->modelMatrix[0][0]);
 	dragon->draw();
 
 	//SPIDER
-	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &spiderModelMatrix[0][0]);
-	glUniformMatrix4fv(shadowOffsets, 2, GL_FALSE, &spiderInstancing[0][0][0]);
+	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &spider->modelMatrix[0][0]);
+	glUniformMatrix4fv(shadowOffsets, 2, GL_FALSE, &spider->instancing[0][0][0]);
 	spider->draw();
 
-	//SKELETON
-	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &skeletonModelMatrix[0][0]);
-	glUniformMatrix4fv(shadowOffsets, 3, GL_FALSE, &skeletonInstancing[0][0][0]);
-	skeleton->draw();
+	////SKELETON
+	//glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &skeletonModelMatrix[0][0]);
+	//glUniformMatrix4fv(shadowOffsets, 3, GL_FALSE, &skeletonInstancing[0][0][0]);
+	//skeleton->draw();
 
 	//UNDO translations for instancing
 	mat4 undoOffsets[3] = { mat4(1), mat4(1), mat4(1) };
@@ -421,7 +420,7 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 	// ----------------------------------------------------------------- //
 
 	//STONE
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &stoneModelMatrix[0][0]);
+	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &stone->modelMatrix[0][0]);
       
 	glActiveTexture(GL_TEXTURE1);								
 	glBindTexture(GL_TEXTURE_2D, stone->diffuseTexture);			
@@ -437,7 +436,7 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 
 	//FLOOR
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &planeModelMatrix[0][0]);
+	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &plane->modelMatrix[0][0]);
 	glActiveTexture(GL_TEXTURE1);								
 	glBindTexture(GL_TEXTURE_2D, plane->diffuseTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -451,10 +450,10 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	glUniform1i(useTextureLocation, 1);
 
-	//plane->draw();
+	plane->draw();
 
 	//TOWER
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &towerModelMatrix[0][0]);
+	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &tower->modelMatrix[0][0]);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, tower->diffuseTexture);
@@ -466,11 +465,11 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	glUniform1i(useTextureLocation, 1);
 
-	//tower->draw();
+	tower->draw();
 
 	
 	//DRAGON
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &dragonModelMatrix[0][0]);
+	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &dragon->modelMatrix[0][0]);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, dragon->diffuseTexture);
@@ -486,7 +485,7 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	
 	//MOUNTAIN
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &mountainModelMatrix[0][0]);
+	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &mountain->modelMatrix[0][0]);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, mountain->diffuseTexture);
@@ -498,10 +497,10 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	glUniform1i(useTextureLocation, 1);
 
-	//mountain->draw();
+	mountain->draw();
 
 	//SPIDER
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &spiderModelMatrix[0][0]);
+	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &spider->modelMatrix[0][0]);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, spider->diffuseTexture);
@@ -513,12 +512,12 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	glUniform1i(useTextureLocation, 1);
 
-	glUniformMatrix4fv(offsets, 2, GL_FALSE, &spiderInstancing[0][0][0]);
+	glUniformMatrix4fv(offsets, 2, GL_FALSE, &spider->instancing[0][0][0]);
 
 	spider->draw();
 
 	//SKELETON
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &skeletonModelMatrix[0][0]);
+	/*glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &skeletonModelMatrix[0][0]);
 
 	uploadMaterial(bone);
 
@@ -526,7 +525,7 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	glUniformMatrix4fv(offsets, 3, GL_FALSE, &skeletonInstancing[0][0][0]);
 
-	skeleton->draw();
+	skeleton->draw();*/
 
 
 	//UNDO translations for instancing
@@ -584,11 +583,11 @@ void mainLoop() {
 		lighting_pass(viewMatrix, projectionMatrix);
 
 		// ANIMATION
-		glEnable(GL_DEPTH_TEST);
+		/*glEnable(GL_DEPTH_TEST);
 		glUseProgram(assimp_shader);
 		glActiveTexture(GL_TEXTURE0);
 		first_animation->bindTexture();
-		glUniform1i(textureSampler, first_animation->Texture);
+		glUniform1i(textureSampler, 0);
 		first_animation->bind();
 		first_animation->skeleton_animate(first_animation->root_node, anim_time,
 			identity_mat4(), first_animation->bone_offset_matrices, first_animation->bone_animation_mats);
@@ -598,7 +597,7 @@ void mainLoop() {
 		glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, &camera->projectionMatrix[0][0]);
 		glUniformMatrix4fv(bone_matrices_locations[0], first_animation->bone_count,
 			GL_FALSE, first_animation->bone_animation_mats[0].m);
-		first_animation->draw();
+		first_animation->draw();*/
 
 	
 		renderDepthMap();

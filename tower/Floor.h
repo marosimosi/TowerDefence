@@ -4,12 +4,14 @@
 #include <glm/glm.hpp>
 #include <common/texture.h>
 
+
 class Drawable;
 class Floor {
 public:
 	Drawable* floor;
 	GLuint diffuseTexture;
 	GLuint specularTexture;
+	glm::mat4 modelMatrix;
 
 	Floor();
 	~Floor();
@@ -21,6 +23,7 @@ public:
 	Drawable* mountain;
 	GLuint diffuseTexture;
 	GLuint specularTexture;
+	glm::mat4 modelMatrix;
 
 	Mountain();
 	~Mountain();

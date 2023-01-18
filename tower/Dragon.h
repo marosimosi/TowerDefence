@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <common/texture.h>
 
+
 class Drawable;
 class Dragon {
 public:
@@ -11,6 +12,7 @@ public:
 	GLuint diffuseTexture;
 	GLuint specularTexture;
 	float hp, speed, damage, load_time;
+	glm::mat4 modelMatrix;
 
 	Dragon();
 	~Dragon();
