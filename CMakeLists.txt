@@ -113,8 +113,11 @@ add_executable(tower
   tower/Dragon.h
   tower/Spider.cpp
   tower/Spider.h
-  tower/Skeleton.cpp
-  tower/Skeleton.h
+  tower/Snake.cpp
+  tower/Snake.h
+  tower/Box.cpp
+  tower/Box.h
+
 
   common/util.cpp
   common/util.h

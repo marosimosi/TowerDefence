@@ -1,13 +1,13 @@
-#ifndef SKELETON_H
-#define SKELETON_H
+#ifndef SNAKE_H
+#define SNAKE_H
 
 #include <glm/glm.hpp>
 #include <common/texture.h>
 
 class Drawable;
-class Skeleton {
+class Snake {
 public:
-	Drawable* skeleton;
+	Drawable* snake;
 	GLuint diffuseTexture;
 	GLuint specularTexture;
 	float hp = 3.0;
@@ -17,8 +17,8 @@ public:
 	glm::mat4 modelMatrix;
 	bool Run = false;
 
-	Skeleton();
-	~Skeleton();
+	Snake();
+	~Snake();
 	void draw(unsigned int drawable = 0);
 	void run(int l);
 };

@@ -1,4 +1,4 @@
-#include "Skeleton.h"
+#include "Snake.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <common/model.h>
 #include <iostream>
@@ -7,25 +7,25 @@
 
 using namespace glm;
 
-Skeleton::Skeleton() {
-    skeleton = new Drawable("snake.obj");
+Snake::Snake() {
+    snake = new Drawable("snake.obj");
     diffuseTexture = loadSOIL("snakedif.bmp");
     specularTexture = loadSOIL("snakespec.bmp");
     modelMatrix = translate(mat4(), vec3(15, -0.5, 15)) * rotate(mat4(), radians(45.0f), vec3(0, 1, 0));
 
 }
 
-Skeleton::~Skeleton() {
-    delete skeleton;
+Snake::~Snake() {
+    delete snake;
 }
 
-void Skeleton::draw(unsigned int drawable) {
-    skeleton->bind();
-    skeleton->draw();
+void Snake::draw(unsigned int drawable) {
+    snake->bind();
+    snake->draw();
 }
 
 float side = 1;
-void Skeleton::run(int loopNum) {
+void Snake::run(int loopNum) {
     if (loopNum % 10 != 0) { return; }
 
     modelMatrix = translate(mat4(), vec3(-speed, 0, -speed)) * 
