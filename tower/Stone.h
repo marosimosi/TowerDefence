@@ -12,12 +12,17 @@ public:
 	Drawable* stone;
 	GLuint diffuseTexture;
 	GLuint specularTexture;
-	float hp, speed, damage, load_time;
+	float hp = 5.0;
+	float speed = 3.0;
+	float damage = 7.0;
+	float load_time = 5.0;
 	glm::mat4 modelMatrix;
+	bool Run = false;
 
 	Stone();
 	~Stone();
 	void draw(unsigned int drawable = 0);
+	void run(int l);
 };
 
 #endif

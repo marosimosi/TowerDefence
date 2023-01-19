@@ -14,18 +14,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 using namespace glm;
+double x;
 
 Spider::Spider() {
     spider = new Drawable("spider.obj");
     diffuseTexture = loadSOIL("spiderdif.bmp");
     specularTexture = loadSOIL("spiderspec.jpg");
-    float hp = 4.0;
-    float speed = 4.0;
-    float damage = 3.0;
-    float load_time = 4.0;
-    modelMatrix = translate(mat4(), vec3(-5, 0, 0)) * scale(mat4(), vec3(0.2, 0.2, 0.2)) * rotate(mat4(), radians(180.0f), vec3(0, 1, 0));
-    instancing[0] = translate(mat4(), vec3(17, 0, -12));
-    instancing[1] = translate(mat4(), vec3(0, 0, 0));
+    modelMatrix = translate(mat4(), vec3(-15, 0, 15)) * scale(mat4(), vec3(0.2, 0.2, 0.2)) * rotate(mat4(), radians(315.0f), vec3(0, 1, 0));
+    instancing[0] = translate(mat4(), vec3(8, 0, -6));
+    instancing[1] = translate(mat4(), vec3(-8, 0, 6));
 }
 
 Spider::~Spider() {
@@ -35,4 +32,13 @@ Spider::~Spider() {
 void Spider::draw(unsigned int drawable) {
     spider->bind();
     spider->draw(2);
+}
+
+float s_angle = 10;
+void Spider::run(int loopNum) {
+    if (loopNum % 3 != 0) { return; }
+
+    modelMatrix = translate(mat4(), vec3(speed, 0, -speed)) * modelMatrix *
+            rotate(mat4(), radians(s_angle), vec3(1, 0, 1));
+    s_angle = -s_angle;
 }

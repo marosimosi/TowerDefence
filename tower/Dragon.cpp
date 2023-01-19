@@ -23,7 +23,7 @@ Dragon::Dragon() {
     float speed = 5.0;
     float damage = 9.0;
     float load_time = 6.0;
-    modelMatrix = translate(mat4(), vec3(-12, 10, 0)) * scale(mat4(), vec3(0.07, 0.1, 0.1));
+    modelMatrix = translate(mat4(), vec3(-15, 10, -15)) * scale(mat4(), vec3(0.07, 0.1, 0.1)) * rotate(mat4(), radians(45.0f), vec3(0,1,0));
 }
 
 Dragon::~Dragon() {

@@ -19,12 +19,7 @@ Stone::Stone(){
     stone = new Drawable("stone.obj");
     diffuseTexture = loadSOIL("diffuso.bmp");
     specularTexture = loadSOIL("rough.bmp");
-    float hp = 5.0;
-    float speed = 3.0;
-    float damage = 7.0;
-    float load_time = 5.0;
-    modelMatrix = translate(mat4(), vec3(12, 0, 0)) * scale(mat4(), vec3(0.5, 0.5, 0.5));
-
+    modelMatrix = translate(mat4(), vec3(15, 0, -15)) * scale(mat4(), vec3(0.5, 0.5, 0.5)) * rotate(mat4(), radians(-45.0f), vec3(0, 1, 0));
 }
 
 Stone::~Stone() {
@@ -34,4 +29,13 @@ Stone::~Stone() {
 void Stone::draw(unsigned int drawable) {
     stone->bind();
     stone->draw();
+}
+
+float st_angle = 40;
+void Stone::run(int loopNum) {
+    if (loopNum % 20 != 0) { return; }
+
+    modelMatrix = translate(mat4(), vec3(-speed, 0, speed)) * modelMatrix *
+        rotate(mat4(), radians(st_angle), vec3(0, 1, 0));
+    st_angle = -st_angle;
 }

@@ -49,6 +49,8 @@ void free();
 #define SHADOW_WIDTH 1024
 #define SHADOW_HEIGHT 1024
 
+int loopNum = 0;
+
 
 
 
@@ -241,8 +243,8 @@ void createContext() {
 
 
 	//  ANIMATION
-	first_animation = new Animation("stone.dae");
-	first_animation->loadTexture("diffuso.bmp");
+	first_animation = new Animation("fragon7.dae");
+	first_animation->loadTexture("dragondif.bmp");
 
 	assimp_shader = loadShaders("assimp.vertexshader", "assimp.fragmentshader");
 	model_mat_location = glGetUniformLocation(assimp_shader, "model");
@@ -370,10 +372,10 @@ void depth_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 	glUniformMatrix4fv(shadowOffsets, 2, GL_FALSE, &spider->instancing[0][0][0]);
 	spider->draw();
 
-	////SKELETON
-	//glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &skeletonModelMatrix[0][0]);
+	//SKELETON
+	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &skeleton->modelMatrix[0][0]);
 	//glUniformMatrix4fv(shadowOffsets, 3, GL_FALSE, &skeletonInstancing[0][0][0]);
-	//skeleton->draw();
+	skeleton->draw();
 
 	//UNDO translations for instancing
 	mat4 undoOffsets[3] = { mat4(1), mat4(1), mat4(1) };
@@ -517,15 +519,19 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 	spider->draw();
 
 	//SKELETON
-	/*glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &skeletonModelMatrix[0][0]);
+	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &skeleton->modelMatrix[0][0]);
 
-	uploadMaterial(bone);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, skeleton->diffuseTexture);
+	glUniform1i(diffuseColorSampler, 1);
 
-	glUniform1i(useTextureLocation, 0);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, skeleton->specularTexture);
+	glUniform1i(specularColorSampler, 2);
 
-	glUniformMatrix4fv(offsets, 3, GL_FALSE, &skeletonInstancing[0][0][0]);
+	glUniform1i(useTextureLocation, 1);
 
-	skeleton->draw();*/
+	skeleton->draw();
 
 
 	//UNDO translations for instancing
@@ -547,8 +553,10 @@ void renderDepthMap() {
 }
 
 
-
+float prev_time = 0;
 void mainLoop() {
+	float time = glfwGetTime();
+	float delta = time - prev_time;
 
 
 	light->update();
@@ -558,14 +566,16 @@ void mainLoop() {
 	double anim_time = 0.0;
 
 	do {
+		loopNum += 1;
+
 		static double previous_seconds = glfwGetTime();
 		double current_seconds = glfwGetTime();
 		double elapsed_seconds = current_seconds - previous_seconds;
 		previous_seconds = current_seconds;
 
-		anim_time += elapsed_seconds * 200.0;
+		anim_time += elapsed_seconds * 600.0;
 		if (anim_time >= first_animation->anim_duration) {
-			anim_time = first_animation->anim_duration - anim_time; 
+			anim_time = first_animation->anim_duration - anim_time;
 		}
 
 		light->update();
@@ -574,7 +584,7 @@ void mainLoop() {
 
 		// Create the depth buffer
 		depth_pass(light_view, light_proj);
-		
+
 		// Getting camera information
 		camera->update();
 		mat4 projectionMatrix = camera->projectionMatrix;
@@ -599,9 +609,32 @@ void mainLoop() {
 			GL_FALSE, first_animation->bone_animation_mats[0].m);
 		first_animation->draw();*/
 
-	
+
 		renderDepthMap();
 
+		// RUN
+
+		if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_R) == GLFW_RELEASE) {
+			spider->Run = true;
+			spider->modelMatrix = spider->modelMatrix * rotate(mat4(), radians(-5.0f), vec3(1, 0, 1));
+			skeleton->Run = true;
+			stone->Run = true;
+			stone->modelMatrix = stone->modelMatrix * rotate(mat4(), radians(-20.0f), vec3(0,1,0));
+		}
+
+		
+		if (spider->Run == true) {
+			spider->run(loopNum);
+		}
+		if (skeleton->Run == true) {
+			skeleton->run(loopNum);
+		}
+		if (stone->Run == true) {
+			stone->run(loopNum);
+		}
+		
+
+		float prev_time = time;
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -679,8 +712,8 @@ void initialize() {
 		vec4{ 0.99, 0.98, 0.83, 1 },
 		vec4{ 0.99, 0.98, 0.83, 1 },
 		vec4{ 0.99, 0.98, 0.83, 1 },
-		vec3{ 0, 30, 20 },
-		800.0f
+		vec3{ 10, 50, 15 },
+		2000.0f
 	);
 
 }
