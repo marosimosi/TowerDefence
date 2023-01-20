@@ -30,7 +30,7 @@
 #include <tower/Tower.h>
 #include <tower/Spider.h>
 #include <tower/Dragon.h>
-#include <tower/Skeleton.h>
+#include <tower/Snake.h>
 
 
 using namespace std;
@@ -73,7 +73,7 @@ Floor* plane;
 Tower* tower;
 Dragon* dragon;
 Spider* spider;
-Skeleton* skeleton;
+Snake* snake;
 Mountain* mountain;
 GLuint depthFrameBuffer, depthTexture;
 
@@ -102,6 +102,8 @@ GLuint lightDirectionLocation;
 GLuint lightFarPlaneLocation;
 GLuint lightNearPlaneLocation;
 GLuint offsets, shadowOffsets;
+GLuint diffuseTexture;
+GLuint specularTexture;
 
 //mat4 stoneModelMatrix = translate(mat4(), vec3(12, 0, 0)) * scale(mat4(), vec3(0.5, 0.5, 0.5));
 //mat4 planeModelMatrix = mat4();
@@ -217,7 +219,7 @@ void createContext() {
 	tower = new Tower();
 	dragon = new Dragon();
 	spider = new Spider();
-	skeleton = new Skeleton();
+	snake = new Snake();
 	mountain = new Mountain();
 
 	//minimap
@@ -243,14 +245,14 @@ void createContext() {
 
 
 	//  ANIMATION
-	first_animation = new Animation("fragon7.dae");
+	first_animation = new Animation("dragon2.dae");
 	first_animation->loadTexture("dragondif.bmp");
 
 	assimp_shader = loadShaders("assimp.vertexshader", "assimp.fragmentshader");
 	model_mat_location = glGetUniformLocation(assimp_shader, "model");
 	view_mat_location = glGetUniformLocation(assimp_shader, "view");
 	proj_mat_location = glGetUniformLocation(assimp_shader, "proj");
-	printf("monkey bone count %i\n", first_animation->bone_count);
+	//printf("monkey bone count %i\n", first_animation->bone_count);
 
 	char name[64];
 	for (int i = 0; i < MAX_BONES; i++) {
@@ -372,10 +374,11 @@ void depth_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 	glUniformMatrix4fv(shadowOffsets, 2, GL_FALSE, &spider->instancing[0][0][0]);
 	spider->draw();
 
-	//SKELETON
-	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &skeleton->modelMatrix[0][0]);
+	//SNAKE
+	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &snake->modelMatrix[0][0]);
 	//glUniformMatrix4fv(shadowOffsets, 3, GL_FALSE, &skeletonInstancing[0][0][0]);
-	skeleton->draw();
+	snake->draw();
+
 
 	//UNDO translations for instancing
 	mat4 undoOffsets[3] = { mat4(1), mat4(1), mat4(1) };
@@ -437,6 +440,7 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 	stone->draw();
 
 
+
 	//FLOOR
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &plane->modelMatrix[0][0]);
 	glActiveTexture(GL_TEXTURE1);								
@@ -471,7 +475,7 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	
 	//DRAGON
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &dragon->modelMatrix[0][0]);
+	/*glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &dragon->modelMatrix[0][0]);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, dragon->diffuseTexture);
@@ -483,7 +487,7 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	glUniform1i(useTextureLocation, 1);
 
-	dragon->draw();
+	dragon->draw();*/
 
 	
 	//MOUNTAIN
@@ -500,6 +504,7 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 	glUniform1i(useTextureLocation, 1);
 
 	mountain->draw();
+
 
 	//SPIDER
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &spider->modelMatrix[0][0]);
@@ -518,20 +523,20 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	spider->draw();
 
-	//SKELETON
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &skeleton->modelMatrix[0][0]);
+	//SNAKE
+	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &snake->modelMatrix[0][0]);
 
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, skeleton->diffuseTexture);
+	glBindTexture(GL_TEXTURE_2D, snake->diffuseTexture);
 	glUniform1i(diffuseColorSampler, 1);
 
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, skeleton->specularTexture);
+	glBindTexture(GL_TEXTURE_2D, snake->specularTexture);
 	glUniform1i(specularColorSampler, 2);
 
 	glUniform1i(useTextureLocation, 1);
 
-	skeleton->draw();
+	snake->draw();
 
 
 	//UNDO translations for instancing
@@ -593,7 +598,7 @@ void mainLoop() {
 		lighting_pass(viewMatrix, projectionMatrix);
 
 		// ANIMATION
-		/*glEnable(GL_DEPTH_TEST);
+		glEnable(GL_DEPTH_TEST);
 		glUseProgram(assimp_shader);
 		glActiveTexture(GL_TEXTURE0);
 		first_animation->bindTexture();
@@ -607,32 +612,61 @@ void mainLoop() {
 		glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, &camera->projectionMatrix[0][0]);
 		glUniformMatrix4fv(bone_matrices_locations[0], first_animation->bone_count,
 			GL_FALSE, first_animation->bone_animation_mats[0].m);
-		first_animation->draw();*/
+		first_animation->draw();
 
 
 		renderDepthMap();
 
 		// RUN
-
-		if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_R) == GLFW_RELEASE) {
+		if (glfwGetKey(window, GLFW_KEY_KP_1) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_KP_1) == GLFW_RELEASE) {
 			spider->Run = true;
 			spider->modelMatrix = spider->modelMatrix * rotate(mat4(), radians(-5.0f), vec3(1, 0, 1));
-			skeleton->Run = true;
+		}
+		if (glfwGetKey(window, GLFW_KEY_KP_3) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_KP_3) == GLFW_RELEASE) {
+			snake->runFirstLoop = loopNum;
+			snake->Run = true;
+		}
+		if (glfwGetKey(window, GLFW_KEY_KP_9) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_KP_9) == GLFW_RELEASE) {
+			stone->runFirstLoop = loopNum;
 			stone->Run = true;
-			stone->modelMatrix = stone->modelMatrix * rotate(mat4(), radians(-20.0f), vec3(0,1,0));
+			stone->modelMatrix = stone->modelMatrix * rotate(mat4(), radians(-20.0f), vec3(0, 1, 0));
 		}
 
-		
+
+		//CHECK RUN
 		if (spider->Run == true) {
 			spider->run(loopNum);
 		}
-		if (skeleton->Run == true) {
-			skeleton->run(loopNum);
+		if (snake->Run == true) {
+			snake->run(loopNum);
 		}
 		if (stone->Run == true) {
 			stone->run(loopNum);
 		}
+
+		//CHECK ATTACK
+		if (snake->Attack == true) {
+			snake->attack(loopNum);
+			tower->snakeAttack(loopNum, snake->attackFirstLoop);
+		}
+		if (stone->Attack == true) {
+			stone->attack(loopNum);
+			tower->stoneAttack(loopNum);
+		}
 		
+		//CHECK REVIVE
+		if (stone->dead == true) {
+			stone->modelMatrix = stone->startModelMatrix;
+			stone->dead = false;
+		}
+		if (snake->dead == true) {
+			snake->modelMatrix = snake->startModelMatrix;
+			snake->dead = false;
+			
+		}
+
+
+
 
 		float prev_time = time;
 

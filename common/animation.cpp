@@ -455,13 +455,11 @@ void Animation::draw(){
 }
 
 void Animation::update(){
-    float size = 0.2f;
-    mat4 Translate = glm::translate(mat4(), vec3(10.0f,3.0f,10.0f));
-    mat4 Rotate = glm::rotate(mat4(),radians(-90.0f),vec3(0.0f,0.0f,1.0f));
-    // modelMatrix = Translate * Rotate * Scaling;
-    // mat4 Scaling = glm::scale(mat4(), vec3(1.0f,1.0f,size));
-    mat4 Scaling = glm::scale(mat4(), vec3(size,size,size));
-    modelMatrix = Scaling;
+    //float size = 0.2f;
+    mat4 Translate = glm::translate(mat4(), vec3(-15, 10, -15));
+    mat4 Rotate = glm::rotate(mat4(), radians(45.0f), vec3(0, 1, 0));
+    mat4 Scaling = glm::scale(mat4(), vec3(0.07, 0.1, 0.1));
+    modelMatrix = Translate * Rotate * Scaling;
 }
 
 

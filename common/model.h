@@ -83,6 +83,8 @@ public:
     std::vector<unsigned int> indices;
 
     GLuint VAO, verticesVBO, uvsVBO, normalsVBO, elementVBO;
+    glm::vec3 min;
+    glm::vec3 max;
 
 private:
     void createContext();

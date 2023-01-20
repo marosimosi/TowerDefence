@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <common/texture.h>
+#include "Box.h"
 
 
 class Drawable;
@@ -16,6 +17,8 @@ public:
 	Tower();
 	~Tower();
 	void draw(unsigned int drawable = 0);
+	void snakeAttack(int l, int fl);
+	void stoneAttack(int l);
 };
 
 #endif

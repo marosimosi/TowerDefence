@@ -396,6 +396,20 @@ void Drawable::createContext() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementVBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
                  &indices[0], GL_STATIC_DRAW);
+
+
+    //FIND MIN, MAX VERTICES
+   /* min = vec3(100, -100, -100);
+    max = vec3(-100, 100, 100);
+
+    for (unsigned int i = 0; i < vertices.size(); i++) {
+            if (vertices[i][0] < min[0]) { min[0] = vertices[i][0]; }
+            if (vertices[i][0] > max[0]) { max[0] = vertices[i][0]; }
+
+    }
+
+    printf("%f", max[0]);
+ */
 }
 
 /*****************************************************************************/
