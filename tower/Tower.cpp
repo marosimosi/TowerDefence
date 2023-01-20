@@ -20,8 +20,10 @@ using namespace glm;
 
 Tower::Tower() {
     tower = new Drawable("tower.obj");
-    diffuseTexture = loadSOIL("towerdif.jpg");
+    diffuse = loadSOIL("towerdif.jpg");
+    diffuseTexture = diffuse;
     specularTexture = loadSOIL("towerspec.jpg");
+    webTexture = loadSOIL("web2.jpg");
     modelMatrix = scale(mat4(), vec3(0.5, 0.6, 0.5));
     /*box = new Box(tower->min, tower->max);
     printf("%f %f", tower->min, tower->max);*/
@@ -54,4 +56,13 @@ void Tower::stoneAttack(int loopNum) {
      modelMatrix = translate(mat4(), vec3(-shake, 0, shake)) * modelMatrix;
      shake = -shake;
 
+}
+
+void Tower::spiderAttack(int loopNum, int firstLoop) {
+    if (loopNum - firstLoop == 20) {
+        diffuseTexture = webTexture;
+    }
+    if (loopNum - firstLoop == 60) {
+        diffuseTexture = diffuse;
+    }
 }

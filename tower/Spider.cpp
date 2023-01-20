@@ -20,7 +20,8 @@ Spider::Spider() {
     spider = new Drawable("spider.obj");
     diffuseTexture = loadSOIL("spiderdif.bmp");
     specularTexture = loadSOIL("spiderspec.jpg");
-    modelMatrix = translate(mat4(), vec3(-15, 0, 15)) * scale(mat4(), vec3(0.2, 0.2, 0.2)) * rotate(mat4(), radians(315.0f), vec3(0, 1, 0));
+    startModelMatrix = translate(mat4(), vec3(-15, 0, 15)) * scale(mat4(), vec3(0.2, 0.2, 0.2)) * rotate(mat4(), radians(315.0f), vec3(0, 1, 0));
+    modelMatrix = startModelMatrix;
     instancing[0] = translate(mat4(), vec3(8, 0, -3));
     instancing[1] = translate(mat4(), vec3(-8, 0, 3));
 }
@@ -36,11 +37,22 @@ void Spider::draw(unsigned int drawable) {
 
 float s_angle = 10;
 void Spider::run(int loopNum) {
-    static int firstLoop = loopNum;
-    if (loopNum - firstLoop == 20) { Run = false; }
-    if ((loopNum - firstLoop) % 3 != 0) { return; }
+    if (loopNum - runFirstLoop == 20) {
+        Run = false;
+        Attack = true;
+        attackFirstLoop = loopNum;
+    }
+    if ((loopNum - runFirstLoop) % 3 != 0) { return; }
    
     modelMatrix = translate(mat4(), vec3(speed, 0, -speed)) * modelMatrix *
             rotate(mat4(), radians(s_angle), vec3(1, 0, 1));
     s_angle = -s_angle;
+}
+
+void Spider::attack(int loopNum) {
+    modelMatrix = rotate(mat4(), radians(15.0f), vec3(0, 1, 0)) * modelMatrix;
+    if (loopNum - attackFirstLoop == 60) {
+        Attack = false;
+        dead = true;
+    }
 }

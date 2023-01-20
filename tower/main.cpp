@@ -617,8 +617,9 @@ void mainLoop() {
 
 		renderDepthMap();
 
-		// RUN
+		// POLL KEYS FOR RUN
 		if (glfwGetKey(window, GLFW_KEY_KP_1) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_KP_1) == GLFW_RELEASE) {
+			spider->runFirstLoop = loopNum;
 			spider->Run = true;
 			spider->modelMatrix = spider->modelMatrix * rotate(mat4(), radians(-5.0f), vec3(1, 0, 1));
 		}
@@ -653,7 +654,11 @@ void mainLoop() {
 			stone->attack(loopNum);
 			tower->stoneAttack(loopNum);
 		}
-		
+		if (spider->Attack == true) {
+			spider->attack(loopNum);
+			tower->spiderAttack(loopNum, spider->attackFirstLoop);
+		}
+
 		//CHECK REVIVE
 		if (stone->dead == true) {
 			stone->modelMatrix = stone->startModelMatrix;
@@ -662,8 +667,12 @@ void mainLoop() {
 		if (snake->dead == true) {
 			snake->modelMatrix = snake->startModelMatrix;
 			snake->dead = false;
-			
 		}
+		if (spider->dead == true) {
+			spider->modelMatrix = spider->startModelMatrix;
+			spider->dead = false;
+		}
+
 
 
 

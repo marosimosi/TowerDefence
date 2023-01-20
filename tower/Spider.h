@@ -15,14 +15,20 @@ public:
 	float speed = 1.5;
 	float damage = 3.0;
 	float load_time = 4.0;
+	glm::mat4 startModelMatrix;
 	glm::mat4 modelMatrix;
 	glm::mat4 instancing[2];
 	bool Run = false;
+	bool Attack = false;
+	bool dead = false;
+	int runFirstLoop;
+	int attackFirstLoop;
 
 	Spider();
 	~Spider();
 	void draw(unsigned int drawable = 0);
 	void run(int l);
+	void attack(int l);
 };
 
 #endif

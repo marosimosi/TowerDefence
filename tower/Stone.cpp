@@ -63,7 +63,6 @@ void Stone::run(int loopNum) {
 
 float tilt = 30;
 void Stone::attack(int loopNum) {
-    //static int firstLoop = loopNum;
     if (loopNum - attackFirstLoop > 55) {
         Attack = false;
         dead = true;
