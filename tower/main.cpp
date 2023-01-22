@@ -17,6 +17,8 @@
 #include <assimp/postprocess.h>
 #include <assimp/Importer.hpp>
 #include <common/animation.h>
+#include "common/FountainEmitter.h"
+#include "common/OrbitEmitter.h"
 
 // Shader loading utilities and other
 #include <common/shader.h>
@@ -67,7 +69,7 @@ struct Material {
 GLFWwindow* window;
 Camera* camera;
 Light* light;
-GLuint shaderProgram, depthProgram, miniMapProgram;
+GLuint shaderProgram, depthProgram, miniMapProgram, particleProgram;
 Stone* stone;
 Floor* plane;
 Tower* tower;
@@ -76,9 +78,10 @@ Spider* spider;
 Snake* snake;
 Mountain* mountain;
 GLuint depthFrameBuffer, depthTexture;
-
 Drawable* quad;
+bool dragonAttack = false;
 
+// animation
 Animation* first_animation;
 GLuint assimp_shader;
 GLuint model_mat_location, view_mat_location, proj_mat_location;
@@ -121,6 +124,11 @@ GLuint shadowModelLocation;
 
 // locations for miniMapProgram
 GLuint quadTextureSamplerLocation;
+
+//locations for particleProgram
+GLuint projAndViewMatrix;
+GLuint particleSampler;
+GLuint fireTexture;
 
 // Create two sample materials
 const Material polishedSilver{
@@ -170,9 +178,10 @@ void uploadMaterial(const Material& mtl) {
 
 void createContext() {
 
-	shaderProgram = loadShaders("ShadowMapping.vertexshader", "ShadowMapping.fragmentshader");
-	depthProgram = loadShaders("Depth.vertexshader", "Depth.fragmentshader");
-	miniMapProgram = loadShaders("SimpleTexture.vertexshader", "SimpleTexture.fragmentshader");
+	shaderProgram = loadShaders("shaders/ShadowMapping.vertexshader", "shaders/ShadowMapping.fragmentshader");
+	depthProgram = loadShaders("shaders/Depth.vertexshader", "shaders/Depth.fragmentshader");
+	miniMapProgram = loadShaders("shaders/SimpleTexture.vertexshader", "shaders/SimpleTexture.fragmentshader");
+	particleProgram = loadShaders("shaders/ParticleShader.vertexshader", "shaders/ParticleShader.fragmentshader");
 
 
 	// Get pointers to uniforms
@@ -209,7 +218,11 @@ void createContext() {
 	// --- miniMapProgram ---
 	quadTextureSamplerLocation = glGetUniformLocation(miniMapProgram, "textureSampler");
 	
-
+	// ---particleProgram ---
+	projAndViewMatrix = glGetUniformLocation(particleProgram, "PV");
+	particleSampler = glGetUniformLocation(particleProgram, "texture0");
+	fireTexture = loadSOIL("fire3.png");
+	
 	
 
 	// Load models
@@ -245,10 +258,10 @@ void createContext() {
 
 
 	//  ANIMATION
-	first_animation = new Animation("dragon2.dae");
+	first_animation = new Animation("models/dragon2.dae");
 	first_animation->loadTexture("dragondif.bmp");
 
-	assimp_shader = loadShaders("assimp.vertexshader", "assimp.fragmentshader");
+	assimp_shader = loadShaders("shaders/assimp.vertexshader", "shaders/assimp.fragmentshader");
 	model_mat_location = glGetUniformLocation(assimp_shader, "model");
 	view_mat_location = glGetUniformLocation(assimp_shader, "view");
 	proj_mat_location = glGetUniformLocation(assimp_shader, "proj");
@@ -382,7 +395,6 @@ void depth_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	//UNDO translations for instancing
 	mat4 undoOffsets[3] = { mat4(1), mat4(1), mat4(1) };
-
 	glUniformMatrix4fv(shadowOffsets, 1, GL_FALSE, &undoOffsets[0][0][0]);
 
 	// binding the default framebuffer again
@@ -558,10 +570,8 @@ void renderDepthMap() {
 }
 
 
-float prev_time = 0;
 void mainLoop() {
-	float time = glfwGetTime();
-	float delta = time - prev_time;
+
 
 
 	light->update();
@@ -569,6 +579,11 @@ void mainLoop() {
 	mat4 light_view = light->viewMatrix;
 
 	double anim_time = 0.0;
+	auto* quad = new Drawable("models/quad.obj");
+	FountainEmitter f_emitter = FountainEmitter(quad, 300);
+	f_emitter.emitter_pos = vec3(-3.5, 10.2, -3.5);
+
+	float t = glfwGetTime();
 
 	do {
 		loopNum += 1;
@@ -595,7 +610,24 @@ void mainLoop() {
 		mat4 projectionMatrix = camera->projectionMatrix;
 		mat4 viewMatrix = camera->viewMatrix;
 
+		float currentTime = glfwGetTime();
+		float dt = currentTime - t;
+
 		lighting_pass(viewMatrix, projectionMatrix);
+
+		// FIRE
+		auto PV = projectionMatrix * viewMatrix;
+		glUseProgram(particleProgram);;
+		glUniformMatrix4fv(projAndViewMatrix, 1, GL_FALSE, &PV[0][0]);
+
+		if (dragonAttack) {
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, fireTexture);
+			glUniform1i(particleSampler, 0);
+			f_emitter.updateParticles(currentTime, dt, camera->pos);
+			f_emitter.renderParticles();
+		}
+
 
 		// ANIMATION
 		glEnable(GL_DEPTH_TEST);
@@ -631,6 +663,9 @@ void mainLoop() {
 			stone->runFirstLoop = loopNum;
 			stone->Run = true;
 			stone->modelMatrix = stone->modelMatrix * rotate(mat4(), radians(-20.0f), vec3(0, 1, 0));
+		}
+		if (glfwGetKey(window, GLFW_KEY_KP_7) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_KP_7) == GLFW_RELEASE) {
+			dragonAttack = !dragonAttack;
 		}
 
 
@@ -675,10 +710,7 @@ void mainLoop() {
 
 
 
-
-
-		float prev_time = time;
-
+		t = currentTime;
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	} while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&

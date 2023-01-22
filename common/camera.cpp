@@ -93,9 +93,10 @@ void Camera::update() {
 
     //construct projection and view matrices
     mat3 rot = mat3( rotate(mat4(), angle, vec3(0, 1, 0)) );
+    pos = rot * position;
     projectionMatrix = perspective(radians(FoV), 4.0f / 3.0f, 0.1f, 200.0f);
     viewMatrix = lookAt(
-        rot * position,
+        pos,
         direction,
         vec3(0.0, 1.0, 0.0)
     );

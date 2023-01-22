@@ -17,24 +17,11 @@
 using namespace glm;
 
 Stone::Stone(){
-    stone = new Drawable("stone.obj");
-    diffuseTexture = loadSOIL("diffuso.bmp");
-    specularTexture = loadSOIL("rough.bmp");
+    stone = new Drawable("models/stone.obj");
+    //diffuseTexture = loadSOIL("diffuso.bmp");
+    //specularTexture = loadSOIL("rough.bmp");
     startModelMatrix = translate(mat4(), vec3(15, 0, -15)) * scale(mat4(), vec3(0.5, 0.5, 0.5)) * rotate(mat4(), radians(-45.0f), vec3(0, 1, 0));
     modelMatrix = startModelMatrix;
-
-    /*glm::vec3 min = vec3(100, 100, 100);
-    glm::vec3 max = vec3(-100, -100, -100);
-
-    for (unsigned int i = 0; i < 5; i++) {
-            if (stone->vertices[i].x < min.x) { min.x = stone->vertices[i].x; }
-            if (stone->vertices[i].x > max.x) { max.x = stone->vertices[i].x; }
-            printf("%f", stone->vertices[i]);
-
-    }
-
-    box = new Box(min, max);
-    printf("%f %f",min, max);*/
 }
 
 Stone::~Stone() {

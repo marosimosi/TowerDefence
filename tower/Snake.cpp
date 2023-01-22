@@ -8,9 +8,9 @@
 using namespace glm;
 
 Snake::Snake() {
-    snake = new Drawable("snake.obj");
-    diffuseTexture = loadSOIL("snakedif.bmp");
-    specularTexture = loadSOIL("snakespec.bmp");
+    snake = new Drawable("models/snake.obj");
+    //diffuseTexture = loadSOIL("snakedif.bmp");
+    //specularTexture = loadSOIL("snakespec.bmp");
     startModelMatrix = translate(mat4(), vec3(15, -0.5, 15)) * rotate(mat4(), radians(45.0f), vec3(0, 1, 0));
     modelMatrix = startModelMatrix;
 }

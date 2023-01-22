@@ -10,6 +10,7 @@ public:
     glm::mat4 projectionMatrix;
     // Initial position : on +Z
     glm::vec3 position;
+    glm::vec3 pos = position;
     // Initial horizontal angle : toward -Z
     float horizontalAngle;
     // Initial vertical angle : none

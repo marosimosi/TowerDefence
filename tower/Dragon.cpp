@@ -16,9 +16,9 @@
 using namespace glm;
 
 Dragon::Dragon() {
-    dragon = new Drawable("dragon.obj");
-    diffuseTexture = loadSOIL("dragondif.bmp");
-    specularTexture = loadSOIL("dragonspec.bmp");
+    dragon = new Drawable("models/dragon.obj");
+    //diffuseTexture = loadSOIL("dragondif.bmp");
+    //specularTexture = loadSOIL("dragonspec.bmp");
     float hp = 2.0;
     float speed = 5.0;
     float damage = 9.0;
