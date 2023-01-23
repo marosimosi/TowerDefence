@@ -17,8 +17,8 @@
 #include <assimp/postprocess.h>
 #include <assimp/Importer.hpp>
 #include <common/animation.h>
-#include "common/FountainEmitter.h"
-#include "common/OrbitEmitter.h"
+#include "common/FireEmitter.h"
+#include "common/ExplosionEmitter.h"
 
 // Shader loading utilities and other
 #include <common/shader.h>
@@ -69,7 +69,8 @@ struct Material {
 GLFWwindow* window;
 Camera* camera;
 Light* light;
-GLuint shaderProgram, depthProgram, miniMapProgram, particleProgram;
+GLuint shaderProgram, depthProgram, miniMapProgram;
+GLuint fireProgram, explosionProgram;
 Stone* stone;
 Floor* plane;
 Tower* tower;
@@ -125,10 +126,15 @@ GLuint shadowModelLocation;
 // locations for miniMapProgram
 GLuint quadTextureSamplerLocation;
 
-//locations for particleProgram
-GLuint projAndViewMatrix;
-GLuint particleSampler;
+//locations for fireProgram
+GLuint fireProjAndView;
+GLuint fireSampler;
 GLuint fireTexture;
+
+//locations for explosionProgram
+GLuint explosionProjAndView;
+GLuint explosionSampler;
+GLuint explosionTexture;
 
 // Create two sample materials
 const Material polishedSilver{
@@ -181,8 +187,8 @@ void createContext() {
 	shaderProgram = loadShaders("shaders/ShadowMapping.vertexshader", "shaders/ShadowMapping.fragmentshader");
 	depthProgram = loadShaders("shaders/Depth.vertexshader", "shaders/Depth.fragmentshader");
 	miniMapProgram = loadShaders("shaders/SimpleTexture.vertexshader", "shaders/SimpleTexture.fragmentshader");
-	particleProgram = loadShaders("shaders/ParticleShader.vertexshader", "shaders/ParticleShader.fragmentshader");
-
+	fireProgram = loadShaders("shaders/Fire.vertexshader", "shaders/Fire.fragmentshader");
+	explosionProgram = loadShaders("shaders/Explosion.vertexshader", "shaders/Explosion.fragmentshader");
 
 	// Get pointers to uniforms
 
@@ -218,15 +224,14 @@ void createContext() {
 	// --- miniMapProgram ---
 	quadTextureSamplerLocation = glGetUniformLocation(miniMapProgram, "textureSampler");
 	
-	// ---particleProgram ---
-	projAndViewMatrix = glGetUniformLocation(particleProgram, "PV");
-	particleSampler = glGetUniformLocation(particleProgram, "texture0");
+	// ---fireProgram ---
+	fireProjAndView = glGetUniformLocation(fireProgram, "PV");
+	fireSampler = glGetUniformLocation(fireProgram, "texture0");
 	fireTexture = loadSOIL("fire3.png");
-	
-	
+
+
 
 	// Load models
-
 	stone = new Stone();
 	plane = new Floor();
 	tower = new Tower();
@@ -234,6 +239,13 @@ void createContext() {
 	spider = new Spider();
 	snake = new Snake();
 	mountain = new Mountain();
+	// ---explosionProgram
+	explosionProjAndView = glGetUniformLocation(explosionProgram, "PV");
+	explosionSampler = glGetUniformLocation(explosionProgram, "texture0");
+	//explosionTexture = stone->diffuseTexture;
+	explosionTexture = loadSOIL("smoke.jpg");
+
+
 
 	//minimap
 	vector<vec3> quadVertices = {
@@ -579,9 +591,14 @@ void mainLoop() {
 	mat4 light_view = light->viewMatrix;
 
 	double anim_time = 0.0;
+
 	auto* quad = new Drawable("models/quad.obj");
-	FountainEmitter f_emitter = FountainEmitter(quad, 300);
-	f_emitter.emitter_pos = vec3(-3.5, 10.2, -3.5);
+	FireEmitter f_emitter = FireEmitter(quad, 300);
+	f_emitter.emitter_pos = vec3(-3.7, 10.2, -3.7);
+
+	//auto* rock = new Drawable("models/quad.obj");
+	ExplosionEmitter* e_emitter = new ExplosionEmitter(quad, 200);
+	e_emitter->emitter_pos = vec3(0.0, 0.0, 0.0);
 
 	float t = glfwGetTime();
 
@@ -615,19 +632,6 @@ void mainLoop() {
 
 		lighting_pass(viewMatrix, projectionMatrix);
 
-		// FIRE
-		auto PV = projectionMatrix * viewMatrix;
-		glUseProgram(particleProgram);;
-		glUniformMatrix4fv(projAndViewMatrix, 1, GL_FALSE, &PV[0][0]);
-
-		if (dragonAttack) {
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, fireTexture);
-			glUniform1i(particleSampler, 0);
-			f_emitter.updateParticles(currentTime, dt, camera->pos);
-			f_emitter.renderParticles();
-		}
-
 
 		// ANIMATION
 		glEnable(GL_DEPTH_TEST);
@@ -649,7 +653,7 @@ void mainLoop() {
 
 		renderDepthMap();
 
-		// POLL KEYS FOR RUN
+		// POLL KEYS 
 		if (glfwGetKey(window, GLFW_KEY_KP_1) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_KP_1) == GLFW_RELEASE) {
 			spider->runFirstLoop = loopNum;
 			spider->Run = true;
@@ -667,6 +671,14 @@ void mainLoop() {
 		if (glfwGetKey(window, GLFW_KEY_KP_7) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_KP_7) == GLFW_RELEASE) {
 			dragonAttack = !dragonAttack;
 		}
+		if (glfwGetKey(window, GLFW_KEY_KP_5) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_KP_5) == GLFW_RELEASE) {
+			if (!tower->Attack) {
+				tower->Attack = true;
+				tower->attackFirstLoop = loopNum;
+				e_emitter = new ExplosionEmitter(quad, 800);
+				e_emitter->emitter_pos = vec3(0.0, 0.0, 0.0);
+			}
+		}
 
 
 		//CHECK RUN
@@ -681,17 +693,45 @@ void mainLoop() {
 		}
 
 		//CHECK ATTACK
+		//snake
 		if (snake->Attack == true) {
 			snake->attack(loopNum);
 			tower->snakeAttack(loopNum, snake->attackFirstLoop);
 		}
+		//stone
 		if (stone->Attack == true) {
 			stone->attack(loopNum);
 			tower->stoneAttack(loopNum);
 		}
+		//spider
 		if (spider->Attack == true) {
 			spider->attack(loopNum);
 			tower->spiderAttack(loopNum, spider->attackFirstLoop);
+		}
+		//dragon
+		auto PV = projectionMatrix * viewMatrix;
+		glUseProgram(fireProgram);;
+		glUniformMatrix4fv(fireProjAndView, 1, GL_FALSE, &PV[0][0]);
+		if (dragonAttack) {
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, fireTexture);
+			glUniform1i(fireSampler, 0);
+			f_emitter.updateParticles(currentTime, dt, camera->pos);
+			f_emitter.renderParticles();
+		}
+		//tower
+		glUseProgram(explosionProgram);
+		glUniformMatrix4fv(explosionProjAndView, 1, GL_FALSE, &PV[0][0]);
+		if (tower->Attack) {
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, explosionTexture);
+			glUniform1i(explosionSampler, 0);
+			e_emitter->updateParticles(currentTime, dt, camera->pos);
+			e_emitter->renderParticles();
+			if (loopNum - tower->attackFirstLoop > 80) {
+				tower->Attack = false;
+				delete e_emitter;
+			}
 		}
 
 		//CHECK REVIVE
@@ -770,8 +810,12 @@ void initialize() {
 	// Accept fragment if it closer to the camera than the former one
 	glDepthFunc(GL_LESS);
 
+	glEnable(GL_PROGRAM_POINT_SIZE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	// Cull triangles which normal is not towards the camera
-	// glEnable(GL_CULL_FACE);
+	 //glEnable(GL_CULL_FACE);
 
 	// enable texturing and bind the depth texture
 	glEnable(GL_TEXTURE_2D);

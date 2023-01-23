@@ -137,10 +137,12 @@ add_executable(tower
   common/maths_funcs.h
   common/IntParticleEmitter.cpp
   common/IntParticleEmitter.h
-  common/FountainEmitter.cpp
-  common/FountainEmitter.h
-  common/OrbitEmitter.cpp
-  common/OrbitEmitter.h
+  common/FireEmitter.cpp
+  common/FireEmitter.h
+  common/ExplosionEmitter.cpp
+  common/ExplosionEmitter.h
+  common/RuinsEmitter.cpp
+  common/RuinsEmitter.h
 
 
   tower/shaders/ShadowMapping.fragmentshader
@@ -151,8 +153,12 @@ add_executable(tower
   tower/shaders/SimpleTexture.vertexshader
   tower/shaders/assimp.fragmentshader
   tower/shaders/assimp.vertexshader
-  tower/shaders/ParticleShader.fragmentshader
-  tower/shaders/ParticleShader.vertexshader
+  tower/shaders/Fire.fragmentshader
+  tower/shaders/Fire.vertexshader
+  tower/shaders/Explosion.fragmentshader
+  tower/shaders/Explosion.vertexshader
+  tower/shaders/Ruins.fragmentshader
+  tower/shaders/Ruins.vertexshader
   )
 target_link_libraries(tower
   ${ALL_LIBS}

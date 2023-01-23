@@ -15,6 +15,8 @@ public:
 	GLuint specularTexture;
 	GLuint webTexture;
 	glm::mat4 modelMatrix;
+	bool Attack = false;
+	int attackFirstLoop;
 
 	Tower();
 	~Tower();

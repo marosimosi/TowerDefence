@@ -18,7 +18,7 @@ using namespace glm;
 
 Stone::Stone(){
     stone = new Drawable("models/stone.obj");
-    //diffuseTexture = loadSOIL("diffuso.bmp");
+    diffuseTexture = loadSOIL("diffuso.bmp");
     //specularTexture = loadSOIL("rough.bmp");
     startModelMatrix = translate(mat4(), vec3(15, 0, -15)) * scale(mat4(), vec3(0.5, 0.5, 0.5)) * rotate(mat4(), radians(-45.0f), vec3(0, 1, 0));
     modelMatrix = startModelMatrix;
