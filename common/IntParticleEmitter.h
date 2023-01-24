@@ -20,6 +20,7 @@ struct particleAttributes{
     glm::vec3 velocity = glm::vec3(0, 0, 0);
     float life = 0.0f;
     float mass = 0.0f;
+    int turn = 0;
 
     float dist_from_camera = 0.0f; //In case you want to do depth sorting
     bool operator < (const particleAttributes & p) const

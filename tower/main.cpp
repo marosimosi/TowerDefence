@@ -597,7 +597,7 @@ void mainLoop() {
 	f_emitter.emitter_pos = vec3(-3.7, 10.2, -3.7);
 
 	//auto* rock = new Drawable("models/quad.obj");
-	ExplosionEmitter* e_emitter = new ExplosionEmitter(quad, 200);
+	ExplosionEmitter* e_emitter = new ExplosionEmitter(quad, 1600);
 	e_emitter->emitter_pos = vec3(0.0, 0.0, 0.0);
 
 	float t = glfwGetTime();
@@ -675,7 +675,7 @@ void mainLoop() {
 			if (!tower->Attack) {
 				tower->Attack = true;
 				tower->attackFirstLoop = loopNum;
-				e_emitter = new ExplosionEmitter(quad, 800);
+				e_emitter = new ExplosionEmitter(quad, 1600);
 				e_emitter->emitter_pos = vec3(0.0, 0.0, 0.0);
 			}
 		}
@@ -728,7 +728,7 @@ void mainLoop() {
 			glUniform1i(explosionSampler, 0);
 			e_emitter->updateParticles(currentTime, dt, camera->pos);
 			e_emitter->renderParticles();
-			if (loopNum - tower->attackFirstLoop > 80) {
+			if (loopNum - tower->attackFirstLoop > 25) {
 				tower->Attack = false;
 				delete e_emitter;
 			}

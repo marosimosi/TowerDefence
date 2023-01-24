@@ -124,7 +124,7 @@ void phong(float visibility) {
     if (useTexture == 1) {
         _Ks = vec4(texture(specularColorSampler, vertex_UV).rgb, 1.0);
         _Kd = vec4(texture(diffuseColorSampler, vertex_UV).rgb, 1.0);
-        _Ka =  vec4(0.2 * texture(diffuseColorSampler, vertex_UV).rgb, 1.0);
+        _Ka = vec4(0.2 * texture(diffuseColorSampler, vertex_UV).rgb, 1.0);
         _Ns = 10;
     }
     

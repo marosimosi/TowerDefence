@@ -12,7 +12,9 @@ class ExplosionEmitter : public IntParticleEmitter {
         
 
         //data member for collision checking
-        float height_threshold = 8.0f;
+        float height_threshold = 10.0f;
+
+        float t = 0;
 
         bool checkForCollision(particleAttributes& particle);
 
