@@ -46,5 +46,18 @@ void Snake::attack(int loopNum) {
     if (loopNum - attackFirstLoop > 35) {
         Attack = false;
         dead = true;
+        reviveFirstLoop = loopNum;
+    }
+}
+
+void Snake::revive(int loopNum) {
+    Run = false;
+    Attack = false;
+    float a = (loopNum - reviveFirstLoop) / load_time;
+    modelMatrix = startModelMatrix * scale(mat4(), vec3(a, a, a));
+    if (loopNum - reviveFirstLoop == load_time) {
+        modelMatrix = startModelMatrix;
+        hp = 3.0f;
+        dead = false;
     }
 }

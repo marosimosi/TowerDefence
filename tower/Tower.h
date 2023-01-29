@@ -17,6 +17,7 @@ public:
 	glm::mat4 modelMatrix;
 	bool Attack = false;
 	int attackFirstLoop;
+	int hp = 200.0f;
 
 	Tower();
 	~Tower();

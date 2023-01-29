@@ -5,11 +5,10 @@
 FireEmitter::FireEmitter(Drawable *_model, int number) : IntParticleEmitter(_model, number) {}
 
 void FireEmitter::updateParticles(float time, float dt, glm::vec3 camera_pos) {
-
     //This is for the fountain to slowly increase the number of its particles to the max amount
     //instead of shooting all the particles at once
     if (active_particles < number_of_particles) {
-        int batch = 100;
+        int batch = 30;
         int limit = std::min(number_of_particles - active_particles, batch);
         for (int i = 0; i < limit; i++) {
             createNewParticle(active_particles);
@@ -29,6 +28,7 @@ void FireEmitter::updateParticles(float time, float dt, glm::vec3 camera_pos) {
 
         if (particle.position.x > height_threshold)
             createNewParticle(i);
+
 
         //particle.accel = glm::vec3(-particle.position.x, 0.0f, -particle.position.z); //gravity force
 

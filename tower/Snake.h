@@ -16,8 +16,8 @@ public:
 	GLuint specularTexture;
 	float hp = 3.0;
 	float speed = 1.0;
-	float damage = 1.5;
-	float load_time = 3.0;
+	float damage = 0.5;
+	float load_time = 60.0;
 	glm::mat4 startModelMatrix;
 	glm::mat4 modelMatrix;
 	bool Run = false;
@@ -25,12 +25,14 @@ public:
 	bool dead = false;
 	int runFirstLoop;
 	int attackFirstLoop;
+	int reviveFirstLoop;
 
 	Snake();
 	~Snake();
 	void draw(unsigned int drawable = 0);
 	void run(int l);
 	void attack(int l);
+	void revive(int l);
 };
 
 #endif

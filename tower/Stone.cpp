@@ -18,7 +18,7 @@ using namespace glm;
 
 Stone::Stone(){
     stone = new Drawable("models/stone.obj");
-    diffuseTexture = loadSOIL("diffuso.bmp");
+    //diffuseTexture = loadSOIL("diffuso.bmp");
     //specularTexture = loadSOIL("rough.bmp");
     startModelMatrix = translate(mat4(), vec3(15, 0, -15)) * scale(mat4(), vec3(0.5, 0.5, 0.5)) * rotate(mat4(), radians(-45.0f), vec3(0, 1, 0));
     modelMatrix = startModelMatrix;
@@ -53,10 +53,22 @@ void Stone::attack(int loopNum) {
     if (loopNum - attackFirstLoop > 55) {
         Attack = false;
         dead = true;
+        reviveFirstLoop = loopNum;
     }
     if ((loopNum - attackFirstLoop) % 10 != 0) { return; }
     modelMatrix = modelMatrix * rotate(mat4(), radians(tilt), vec3(1, 0, 0));
-    tilt = -tilt;
+    tilt = -tilt;  
+}
 
-    
+void Stone::revive(int loopNum) {
+    Run = false;
+    Attack = false;
+    float a = (loopNum - reviveFirstLoop) / load_time;
+    modelMatrix = startModelMatrix * scale(mat4(), vec3(a, a, a));
+    if (loopNum - reviveFirstLoop == load_time) {
+        modelMatrix = startModelMatrix;
+        hp = 5.0f;
+        tilt = 30;
+        dead = false;
+    }
 }

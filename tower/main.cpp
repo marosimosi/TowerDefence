@@ -19,6 +19,7 @@
 #include <common/animation.h>
 #include "common/FireEmitter.h"
 #include "common/ExplosionEmitter.h"
+#include "common/RuinsEmitter.h"
 
 // Shader loading utilities and other
 #include <common/shader.h>
@@ -70,17 +71,22 @@ GLFWwindow* window;
 Camera* camera;
 Light* light;
 GLuint shaderProgram, depthProgram, miniMapProgram;
-GLuint fireProgram, explosionProgram;
+GLuint fireProgram, explosionProgram, ruinsProgram;
 Stone* stone;
 Floor* plane;
 Tower* tower;
-Dragon* dragon;
+//Dragon* dragon;
 Spider* spider;
 Snake* snake;
 Mountain* mountain;
 GLuint depthFrameBuffer, depthTexture;
 Drawable* quad;
+
 bool dragonAttack = false;
+bool dragonRun = false;
+int dragonRunFirstLoop;
+int dragonAttackFirstLoop;
+float dragonDamage = 1.5f;
 
 // animation
 Animation* first_animation;
@@ -136,6 +142,11 @@ GLuint explosionProjAndView;
 GLuint explosionSampler;
 GLuint explosionTexture;
 
+//locations for ruinsProgram
+GLuint ruinsProjAndView;
+GLuint ruinsSampler;
+GLuint ruinsTexture;
+
 // Create two sample materials
 const Material polishedSilver{
 	vec4{0.23125, 0.23125, 0.23125, 1},
@@ -189,6 +200,7 @@ void createContext() {
 	miniMapProgram = loadShaders("shaders/SimpleTexture.vertexshader", "shaders/SimpleTexture.fragmentshader");
 	fireProgram = loadShaders("shaders/Fire.vertexshader", "shaders/Fire.fragmentshader");
 	explosionProgram = loadShaders("shaders/Explosion.vertexshader", "shaders/Explosion.fragmentshader");
+	ruinsProgram = loadShaders("shaders/Ruins.vertexshader", "shaders/Ruins.fragmentshader");
 
 	// Get pointers to uniforms
 
@@ -229,22 +241,28 @@ void createContext() {
 	fireSampler = glGetUniformLocation(fireProgram, "texture0");
 	fireTexture = loadSOIL("fire3.png");
 
+	// ---explosionProgram
+	explosionProjAndView = glGetUniformLocation(explosionProgram, "PV");
+	explosionSampler = glGetUniformLocation(explosionProgram, "texture0");
+	explosionTexture = loadSOIL("smoke.jpg");
+
 
 
 	// Load models
 	stone = new Stone();
 	plane = new Floor();
 	tower = new Tower();
-	dragon = new Dragon();
+	//dragon = new Dragon();
 	spider = new Spider();
 	snake = new Snake();
 	mountain = new Mountain();
-	// ---explosionProgram
-	explosionProjAndView = glGetUniformLocation(explosionProgram, "PV");
-	explosionSampler = glGetUniformLocation(explosionProgram, "texture0");
-	//explosionTexture = stone->diffuseTexture;
-	explosionTexture = loadSOIL("smoke.jpg");
+	
 
+
+	// ---ruinsProgram ---
+	ruinsProjAndView = glGetUniformLocation(ruinsProgram, "PV");
+	ruinsSampler = glGetUniformLocation(ruinsProgram, "texture0");
+	ruinsTexture = tower->diffuseTexture;
 
 
 	//minimap
@@ -384,15 +402,15 @@ void depth_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	//TOWER
 	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &tower->modelMatrix[0][0]);
-	tower->draw();
+	if (tower->hp > 0) tower->draw();
 
 	//MOUNTAIN
 	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &mountain->modelMatrix[0][0]);
 	mountain->draw();
 
-	//DRAGON
-	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &dragon->modelMatrix[0][0]);
-	dragon->draw();
+	////DRAGON
+	//glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &dragon->modelMatrix[0][0]);
+	//dragon->draw();
 
 	//SPIDER
 	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &spider->modelMatrix[0][0]);
@@ -495,7 +513,7 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	glUniform1i(useTextureLocation, 1);
 
-	tower->draw();
+	if (tower->hp>0) tower->draw();
 
 	
 	//DRAGON
@@ -584,21 +602,23 @@ void renderDepthMap() {
 
 void mainLoop() {
 
-
-
 	light->update();
 	mat4 light_proj = light->projectionMatrix;
 	mat4 light_view = light->viewMatrix;
 
 	double anim_time = 0.0;
 
+	// initialize emitters to avoid errors, will override later
 	auto* quad = new Drawable("models/quad.obj");
-	FireEmitter f_emitter = FireEmitter(quad, 300);
-	f_emitter.emitter_pos = vec3(-3.7, 10.2, -3.7);
+	FireEmitter* f_emitter = new FireEmitter(quad, 300);
+	f_emitter->emitter_pos = vec3(-3.7, 10.2, -3.7);
 
-	//auto* rock = new Drawable("models/quad.obj");
 	ExplosionEmitter* e_emitter = new ExplosionEmitter(quad, 1600);
 	e_emitter->emitter_pos = vec3(0.0, 0.0, 0.0);
+
+	auto* rock = new Drawable("models/rock3.obj");
+	RuinsEmitter* r_emitter = new RuinsEmitter(rock, 200);
+	r_emitter->emitter_pos = vec3(0.0, 0.0, 0.0);
 
 	float t = glfwGetTime();
 
@@ -653,23 +673,34 @@ void mainLoop() {
 
 		renderDepthMap();
 
-		// POLL KEYS 
+		// ----------POLL KEYS--------------------------------------------------------------------------------------// 
 		if (glfwGetKey(window, GLFW_KEY_KP_1) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_KP_1) == GLFW_RELEASE) {
-			spider->runFirstLoop = loopNum;
-			spider->Run = true;
-			spider->modelMatrix = spider->modelMatrix * rotate(mat4(), radians(-5.0f), vec3(1, 0, 1));
+			if (!spider->Run && !spider->Attack) {
+				spider->runFirstLoop = loopNum;
+				spider->Run = true;
+				spider->modelMatrix = spider->modelMatrix * rotate(mat4(), radians(-5.0f), vec3(1, 0, 1));
+			}
 		}
 		if (glfwGetKey(window, GLFW_KEY_KP_3) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_KP_3) == GLFW_RELEASE) {
-			snake->runFirstLoop = loopNum;
-			snake->Run = true;
+			if (!snake->Run && !snake->Attack) {
+				snake->runFirstLoop = loopNum;
+				snake->Run = true;
+			}
 		}
 		if (glfwGetKey(window, GLFW_KEY_KP_9) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_KP_9) == GLFW_RELEASE) {
-			stone->runFirstLoop = loopNum;
-			stone->Run = true;
-			stone->modelMatrix = stone->modelMatrix * rotate(mat4(), radians(-20.0f), vec3(0, 1, 0));
+			if (!stone->Run && !stone->Attack) {
+				stone->runFirstLoop = loopNum;
+				stone->Run = true;
+				stone->modelMatrix = stone->modelMatrix * rotate(mat4(), radians(-20.0f), vec3(0, 1, 0));
+			}
 		}
 		if (glfwGetKey(window, GLFW_KEY_KP_7) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_KP_7) == GLFW_RELEASE) {
-			dragonAttack = !dragonAttack;
+			if (!dragonAttack) {
+				dragonAttack = true;
+				dragonAttackFirstLoop = loopNum;
+				f_emitter = new FireEmitter(quad, 1600);
+				f_emitter->emitter_pos = vec3(-8.7, 10.2, -8.7);
+			}
 		}
 		if (glfwGetKey(window, GLFW_KEY_KP_5) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_KP_5) == GLFW_RELEASE) {
 			if (!tower->Attack) {
@@ -680,8 +711,7 @@ void mainLoop() {
 			}
 		}
 
-
-		//CHECK RUN
+		// ----------CHECK RUN--------------------------------------------------------------------------------------// 
 		if (spider->Run == true) {
 			spider->run(loopNum);
 		}
@@ -692,33 +722,43 @@ void mainLoop() {
 			stone->run(loopNum);
 		}
 
-		//CHECK ATTACK
+
+		// ----------CHECK ATTACK--------------------------------------------------------------------------------------// 
 		//snake
 		if (snake->Attack == true) {
 			snake->attack(loopNum);
 			tower->snakeAttack(loopNum, snake->attackFirstLoop);
+			tower->hp -= snake->damage;
 		}
 		//stone
 		if (stone->Attack == true) {
 			stone->attack(loopNum);
 			tower->stoneAttack(loopNum);
+			tower->hp -= stone->damage;
 		}
 		//spider
 		if (spider->Attack == true) {
 			spider->attack(loopNum);
 			tower->spiderAttack(loopNum, spider->attackFirstLoop);
+			tower->hp -= spider->damage;
 		}
 		//dragon
 		auto PV = projectionMatrix * viewMatrix;
-		glUseProgram(fireProgram);;
+		glUseProgram(fireProgram);
 		glUniformMatrix4fv(fireProjAndView, 1, GL_FALSE, &PV[0][0]);
 		if (dragonAttack) {
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, fireTexture);
 			glUniform1i(fireSampler, 0);
-			f_emitter.updateParticles(currentTime, dt, camera->pos);
-			f_emitter.renderParticles();
+			f_emitter->updateParticles(currentTime, dt, camera->pos);
+			f_emitter->renderParticles();
+			if (loopNum - dragonAttackFirstLoop > 100) {
+				dragonAttack = false;
+				delete f_emitter;
+			}
+			tower->hp -= dragonDamage;
 		}
+
 		//tower
 		glUseProgram(explosionProgram);
 		glUniformMatrix4fv(explosionProjAndView, 1, GL_FALSE, &PV[0][0]);
@@ -732,20 +772,54 @@ void mainLoop() {
 				tower->Attack = false;
 				delete e_emitter;
 			}
+			if (stone->Run || stone->Attack) {
+				stone->hp -= 0.1;
+				if (stone->hp <= 0) {
+					stone->dead = true;
+					stone->reviveFirstLoop = loopNum;
+				}
+			}
+			if (spider->Run || spider->Attack) {
+				spider->hp -= 0.1;
+				if (spider->hp <= 0) {
+					spider->dead = true;
+					spider->reviveFirstLoop = loopNum;
+				}
+			}
+			if (snake->Run) {
+				snake->hp -= 0.1;
+				if (snake->hp <= 0) {
+					snake->dead = true;
+					snake->reviveFirstLoop = loopNum;
+				}
+			}
 		}
 
-		//CHECK REVIVE
+		// ----------CHECK REVIVE--------------------------------------------------------------------------------------// 
 		if (stone->dead == true) {
-			stone->modelMatrix = stone->startModelMatrix;
-			stone->dead = false;
+			stone->revive(loopNum);
 		}
 		if (snake->dead == true) {
-			snake->modelMatrix = snake->startModelMatrix;
-			snake->dead = false;
+			snake->revive(loopNum);
 		}
 		if (spider->dead == true) {
-			spider->modelMatrix = spider->startModelMatrix;
-			spider->dead = false;
+			spider->revive(loopNum);
+		}
+
+		// ----------CHECK TOWER HP--------------------------------------------------------------------------------------//
+		if (tower->hp <= 0) {
+			glUseProgram(ruinsProgram);
+			glUniformMatrix4fv(explosionProjAndView, 1, GL_FALSE, &PV[0][0]);
+			if (tower->Attack) {
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, explosionTexture);
+				glUniform1i(explosionSampler, 0);
+				e_emitter->updateParticles(currentTime, dt, camera->pos);
+				e_emitter->renderParticles();
+				if (loopNum - tower->attackFirstLoop > 25) {
+					tower->Attack = false;
+					delete e_emitter;
+				}
 		}
 
 

@@ -54,5 +54,19 @@ void Spider::attack(int loopNum) {
     if (loopNum - attackFirstLoop == 60) {
         Attack = false;
         dead = true;
+        reviveFirstLoop = loopNum;
     }
 }
+
+void Spider::revive(int loopNum) {
+    Run = false;
+    Attack = false;
+    float a = (loopNum - reviveFirstLoop) / load_time;
+    modelMatrix = startModelMatrix * scale(mat4(), vec3(a, a, a));
+    if (loopNum - reviveFirstLoop == load_time) {
+        modelMatrix = startModelMatrix;
+        hp = 2.0f;
+        dead = false;
+    }
+ }
+    

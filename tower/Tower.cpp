@@ -1,5 +1,4 @@
 #include "Tower.h"
-#include "Box.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <common/model.h>
 #include <iostream>
@@ -20,7 +19,7 @@ using namespace glm;
 
 Tower::Tower() {
     tower = new Drawable("models/tower.obj");
-    //diffuse = loadSOIL("towerdif.jpg");
+    diffuse = loadSOIL("towerdif.jpg");
     diffuseTexture = diffuse;
     //specularTexture = loadSOIL("towerspec.jpg");
     //webTexture = loadSOIL("web2.jpg");
