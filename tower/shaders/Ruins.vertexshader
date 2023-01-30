@@ -7,7 +7,7 @@ layout(location = 2) in vec2 vertexUV;
 layout (location = 3) in mat4 aInstanceMatrix;
 layout (location = 7) in mat4 rotationMatrix;
 layout (location = 11) in float scale;
-layout (location = 11) in float life;
+layout (location = 12) in float life;
 
 out vec2 UV;
 out float vs_life;

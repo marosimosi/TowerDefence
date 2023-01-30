@@ -88,6 +88,8 @@ int dragonRunFirstLoop;
 int dragonAttackFirstLoop;
 float dragonDamage = 1.5f;
 
+bool stop = false;
+
 // animation
 Animation* first_animation;
 GLuint assimp_shader;
@@ -246,6 +248,11 @@ void createContext() {
 	explosionSampler = glGetUniformLocation(explosionProgram, "texture0");
 	explosionTexture = loadSOIL("smoke.jpg");
 
+	// ---ruinsProgram ---
+	ruinsProjAndView = glGetUniformLocation(ruinsProgram, "PV");
+	ruinsSampler = glGetUniformLocation(ruinsProgram, "texture0");
+	ruinsTexture = loadSOIL("ruins.jpg");
+
 
 
 	// Load models
@@ -257,13 +264,6 @@ void createContext() {
 	snake = new Snake();
 	mountain = new Mountain();
 	
-
-
-	// ---ruinsProgram ---
-	ruinsProjAndView = glGetUniformLocation(ruinsProgram, "PV");
-	ruinsSampler = glGetUniformLocation(ruinsProgram, "texture0");
-	ruinsTexture = tower->diffuseTexture;
-
 
 	//minimap
 	vector<vec3> quadVertices = {
@@ -402,7 +402,7 @@ void depth_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	//TOWER
 	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &tower->modelMatrix[0][0]);
-	if (tower->hp > 0) tower->draw();
+	tower->draw();
 
 	//MOUNTAIN
 	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &mountain->modelMatrix[0][0]);
@@ -513,7 +513,7 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	glUniform1i(useTextureLocation, 1);
 
-	if (tower->hp>0) tower->draw();
+	tower->draw();
 
 	
 	//DRAGON
@@ -617,10 +617,11 @@ void mainLoop() {
 	e_emitter->emitter_pos = vec3(0.0, 0.0, 0.0);
 
 	auto* rock = new Drawable("models/rock3.obj");
-	RuinsEmitter* r_emitter = new RuinsEmitter(rock, 200);
-	r_emitter->emitter_pos = vec3(0.0, 0.0, 0.0);
+	RuinsEmitter* r_emitter = new RuinsEmitter(rock, 1000);
+	r_emitter->emitter_pos = vec3(0.0, 3.0, 0.0);
 
 	float t = glfwGetTime();
+	float shake = 0.1f;
 
 	do {
 		loopNum += 1;
@@ -807,19 +808,21 @@ void mainLoop() {
 		}
 
 		// ----------CHECK TOWER HP--------------------------------------------------------------------------------------//
+		
 		if (tower->hp <= 0) {
+			static int start = loopNum;
 			glUseProgram(ruinsProgram);
-			glUniformMatrix4fv(explosionProjAndView, 1, GL_FALSE, &PV[0][0]);
-			if (tower->Attack) {
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, explosionTexture);
-				glUniform1i(explosionSampler, 0);
-				e_emitter->updateParticles(currentTime, dt, camera->pos);
-				e_emitter->renderParticles();
-				if (loopNum - tower->attackFirstLoop > 25) {
-					tower->Attack = false;
-					delete e_emitter;
-				}
+			glUniformMatrix4fv(ruinsProjAndView, 1, GL_FALSE, &PV[0][0]);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, ruinsTexture);
+			glUniform1i(ruinsSampler, 0);
+			r_emitter->updateParticles(currentTime, dt, camera->pos);
+			r_emitter->renderParticles();
+			if (loopNum - start == 150) {
+				stop = true;
+			}
+			tower->modelMatrix = translate(mat4(), vec3(shake, -0.1, shake)) * tower->modelMatrix;
+			shake = -shake;
 		}
 
 
@@ -828,7 +831,7 @@ void mainLoop() {
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	} while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
-		glfwWindowShouldClose(window) == 0);
+		glfwWindowShouldClose(window) == 0 && stop == false);
 
 }
 

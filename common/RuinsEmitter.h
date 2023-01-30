@@ -12,7 +12,7 @@ class RuinsEmitter : public IntParticleEmitter {
         
 
         //data member for collision checking
-        float height_threshold = -0.5f;
+        float height_threshold = 0.0f;
 
         bool checkForCollision(particleAttributes& particle);
 

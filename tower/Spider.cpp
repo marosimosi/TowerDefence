@@ -18,8 +18,8 @@ double x;
 
 Spider::Spider() {
     spider = new Drawable("models/spider.obj");
-    //diffuseTexture = loadSOIL("spiderdif.bmp");
-    //specularTexture = loadSOIL("spiderspec.jpg");
+    diffuseTexture = loadSOIL("spiderdif.bmp");
+    specularTexture = loadSOIL("spiderspec.jpg");
     startModelMatrix = translate(mat4(), vec3(-15, 0, 15)) * scale(mat4(), vec3(0.2, 0.2, 0.2)) * rotate(mat4(), radians(315.0f), vec3(0, 1, 0));
     modelMatrix = startModelMatrix;
     instancing[0] = translate(mat4(), vec3(8, 0, -3));
@@ -66,6 +66,7 @@ void Spider::revive(int loopNum) {
     if (loopNum - reviveFirstLoop == load_time) {
         modelMatrix = startModelMatrix;
         hp = 2.0f;
+        s_angle = 10;
         dead = false;
     }
  }

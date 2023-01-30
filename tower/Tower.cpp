@@ -21,8 +21,8 @@ Tower::Tower() {
     tower = new Drawable("models/tower.obj");
     diffuse = loadSOIL("towerdif.jpg");
     diffuseTexture = diffuse;
-    //specularTexture = loadSOIL("towerspec.jpg");
-    //webTexture = loadSOIL("web2.jpg");
+    specularTexture = loadSOIL("towerspec.jpg");
+    webTexture = loadSOIL("web2.jpg");
     modelMatrix = scale(mat4(), vec3(0.5, 0.6, 0.5));
 }
 
