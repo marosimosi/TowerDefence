@@ -67,7 +67,6 @@ void Floor::draw(unsigned int drawable) {
 Mountain::Mountain() {
 	mountain = new Drawable("models/mountain.obj");
 	diffuseTexture = loadSOIL("mountaindif.jpg");
-	//specularTexture = loadSOIL("groundspec.jpg");
 	modelMatrix = translate(mat4(), vec3(4, 0.01, 65)) * scale(mat4(), vec3(6, 6, 6)) * rotate(mat4(), radians(90.0f), vec3(0, 1, 0));
 }
 

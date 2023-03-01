@@ -6,11 +6,9 @@ ExplosionEmitter::ExplosionEmitter(Drawable *_model, int number) : IntParticleEm
 
 void ExplosionEmitter::updateParticles(float time, float dt, glm::vec3 camera_pos) {
 
-    //This is for the fountain to slowly increase the number of its particles to the max amount
-    //instead of shooting all the particles at once
+    //shoot all the particles at once
     if (active_particles < number_of_particles) {
         int batch = 1600;
-        /*int limit = std::min(number_of_particles - active_particles, batch);*/
         for (int i = 0; i < batch; i++) {
             createNewParticle(active_particles);
             active_particles++;
@@ -28,10 +26,7 @@ void ExplosionEmitter::updateParticles(float time, float dt, glm::vec3 camera_po
             createNewParticle(i);
         }
 
-        //particle.accel = glm::vec3(-particle.position.x, 0.0f, -particle.position.z); //gravity force
-
-        //particle.rot_angle += 90*dt; 
-
+        // MUSHROOM
         if (particle.life > 0.5f && particle.life <= 1.0f) {
             particle.accel = glm::vec3(0, 20 * RAND, 0);
             particle.velocity = particle.velocity + particle.accel * dt;
@@ -53,7 +48,6 @@ void ExplosionEmitter::updateParticles(float time, float dt, glm::vec3 camera_po
         }
 
         particle.position = particle.position + particle.velocity*dt + particle.accel*(dt*dt)*0.5f;
-        /*particle.velocity = particle.velocity + particle.accel*dt;*/
 
         //*
         auto bill_rot = calculateBillboardRotationMatrix(particle.position, camera_pos);
@@ -78,6 +72,7 @@ bool ExplosionEmitter::checkForCollision(particleAttributes& particle)
 void ExplosionEmitter::createNewParticle(int index){
     particleAttributes & particle = p_attributes[index];
 
+    // 4 different explosions
     if (index >= 0 && index < 400 && particle.turn != 4) particle.turn = 0;
     else if (index >= 400 && index < 800 && particle.turn != 4) particle.turn = 1;
     else if (index >= 800 && index < 1200 && particle.turn != 4) particle.turn = 2;
@@ -85,8 +80,7 @@ void ExplosionEmitter::createNewParticle(int index){
 
     particle.rot_angle = RAND * 360;
     particle.mass = 0.6f;
-   /* particle.position = emitter_pos + glm::vec3((4 + 6*RAND) * sin(particle.rot_angle), 0, (4 + 6 * RAND) * cos(particle.rot_angle));*/
-    particle.velocity = glm::vec3(0, 5 + 150 * RAND, 0); // *10.0f; 1 - RAND * 2
+    particle.velocity = glm::vec3(0, 5 + 150 * RAND, 0);
 
     if (particle.turn == 0) {
         particle.position = emitter_pos + glm::vec3((RAND - RAND) - 7, 0, (RAND - RAND))+ glm::vec3(0, 0, 7);
@@ -105,6 +99,6 @@ void ExplosionEmitter::createNewParticle(int index){
     }
 
     particle.rot_axis = glm::normalize(glm::vec3(1 - 2*RAND, 1 - 2*RAND, 1 - 2*RAND));
-    particle.accel = glm::vec3(0.0f, 1.0f, 0.0f); //gravity force
+    particle.accel = glm::vec3(0.0f, 1.0f, 0.0f); 
     particle.life = 1.0f; //mark it alive
 }

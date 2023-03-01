@@ -30,10 +30,6 @@ void FireEmitter::updateParticles(float time, float dt, glm::vec3 camera_pos) {
             createNewParticle(i);
 
 
-        //particle.accel = glm::vec3(-particle.position.x, 0.0f, -particle.position.z); //gravity force
-
-        //particle.rot_angle += 90*dt; 
-
         particle.position = particle.position + particle.velocity*dt + particle.accel*(dt*dt)*0.5f;
         particle.velocity = particle.velocity + particle.accel*dt;
 
@@ -45,6 +41,7 @@ void FireEmitter::updateParticles(float time, float dt, glm::vec3 camera_pos) {
         particle.dist_from_camera = length(particle.position - camera_pos);
         particle.life = (height_threshold - particle.position.x) / (height_threshold - emitter_pos.x);
 
+        // increase size towards edges
         if (particle.life > 0.3) { particle.mass += 0.01; }
         if (particle.life > 0.6) { particle.mass += 0.02; }
     }
@@ -58,12 +55,12 @@ bool FireEmitter::checkForCollision(particleAttributes& particle)
 void FireEmitter::createNewParticle(int index){
     particleAttributes & particle = p_attributes[index];
 
-    particle.position = emitter_pos;//+glm::vec3(1 - RAND * 2, RAND, 1 - RAND * 2);
+    particle.position = emitter_pos;
     particle.velocity = glm::vec3( RAND*2, 1 - RAND * 2 , RAND*2);
 
     particle.mass = 0.1f;
     particle.rot_axis = glm::normalize(glm::vec3(1 - 2*RAND, 1 - 2*RAND, 1 - 2*RAND));
-    particle.accel = glm::vec3(5.0f, 0.0f, 5.0f); //gravity force
+    particle.accel = glm::vec3(5.0f, 0.0f, 5.0f); 
     particle.rot_angle = RAND*360;
     particle.life = 1.0f; //mark it alive
 }

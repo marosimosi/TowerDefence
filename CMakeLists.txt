@@ -109,14 +109,10 @@ add_executable(tower
   tower/Floor.h
   tower/Tower.cpp
   tower/Tower.h
-  tower/Dragon.cpp
-  tower/Dragon.h
   tower/Spider.cpp
   tower/Spider.h
   tower/Snake.cpp
   tower/Snake.h
-  tower/Box.cpp
-  tower/Box.h
 
 
   common/util.cpp
@@ -149,8 +145,6 @@ add_executable(tower
   tower/shaders/ShadowMapping.vertexshader
   tower/shaders/Depth.fragmentshader
   tower/shaders/Depth.vertexshader
-  tower/shaders/SimpleTexture.fragmentshader
-  tower/shaders/SimpleTexture.vertexshader
   tower/shaders/assimp.fragmentshader
   tower/shaders/assimp.vertexshader
   tower/shaders/Fire.fragmentshader

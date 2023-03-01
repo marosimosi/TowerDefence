@@ -3,7 +3,6 @@
 
 #include <glm/glm.hpp>
 #include <common/texture.h>
-#include "Box.h"
 
 
 class Drawable;

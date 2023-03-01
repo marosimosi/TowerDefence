@@ -1,5 +1,4 @@
 #include "Stone.h"
-#include "Box.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <common/model.h>
 #include <iostream>
@@ -35,7 +34,6 @@ void Stone::draw(unsigned int drawable) {
 
 float st_angle = 40;
 void Stone::run(int loopNum) {
-    //static int firstLoop = loopNum;
     if (loopNum - runFirstLoop == 75) {
         Run = false;
         Attack = true;

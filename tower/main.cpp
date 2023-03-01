@@ -32,7 +32,6 @@
 #include <tower/Floor.h>
 #include <tower/Tower.h>
 #include <tower/Spider.h>
-#include <tower/Dragon.h>
 #include <tower/Snake.h>
 
 
@@ -75,20 +74,23 @@ GLuint fireProgram, explosionProgram, ruinsProgram;
 Stone* stone;
 Floor* plane;
 Tower* tower;
-//Dragon* dragon;
 Spider* spider;
 Snake* snake;
 Mountain* mountain;
 GLuint depthFrameBuffer, depthTexture;
 Drawable* quad;
 
+//To end the game
+bool stop = false;
+
+
+
+//Initialize dragon variables
 bool dragonAttack = false;
 bool dragonRun = false;
 int dragonRunFirstLoop;
 int dragonAttackFirstLoop;
 float dragonDamage = 1.5f;
-
-bool stop = false;
 
 // animation
 Animation* first_animation;
@@ -96,6 +98,8 @@ GLuint assimp_shader;
 GLuint model_mat_location, view_mat_location, proj_mat_location;
 GLuint bone_matrices_locations[MAX_BONES];
 GLuint textureSampler;
+
+
 
 // locations for shaderProgram
 GLuint viewMatrixLocation;
@@ -117,22 +121,10 @@ GLuint offsets, shadowOffsets;
 GLuint diffuseTexture;
 GLuint specularTexture;
 
-//mat4 stoneModelMatrix = translate(mat4(), vec3(12, 0, 0)) * scale(mat4(), vec3(0.5, 0.5, 0.5));
-//mat4 planeModelMatrix = mat4();
-//mat4 dragonModelMatrix = translate(mat4(), vec3(-12, 10, 0)) * scale(mat4(), vec3(0.1, 0.1, 0.1));
-//mat4 mountainModelMatrix = translate(mat4(), vec3(0, 0.01, -45)) * scale(mat4(), vec3(6, 6, 6)) * rotate(mat4(), radians(90.0f), vec3(0, 1, 0));
-//mat4 spiderModelMatrix = translate(mat4(), vec3(-5, 0, 0)) * scale(mat4(), vec3(0.3, 0.3, 0.3)) * rotate(mat4(), radians(180.0f), vec3(0, 1, 0));
-//mat4 skeletonModelMatrix = translate(mat4(), vec3(5, 0, 0));
-//
-//mat4 spiderInstancing[2] = { translate(mat4(), vec3(17, 0, -12)), translate(mat4(), vec3(0, 0, 0)) };
-//mat4 skeletonInstancing[3] = { translate(mat4(), vec3(0, 0, 2)), translate(mat4(), vec3(-1.5, 0, 0)),  translate(mat4(), vec3(1.5, 0, 0)) };
 
 // locations for depthProgram
 GLuint shadowViewProjectionLocation; 
 GLuint shadowModelLocation;
-
-// locations for miniMapProgram
-GLuint quadTextureSamplerLocation;
 
 //locations for fireProgram
 GLuint fireProjAndView;
@@ -149,21 +141,9 @@ GLuint ruinsProjAndView;
 GLuint ruinsSampler;
 GLuint ruinsTexture;
 
-// Create two sample materials
-const Material polishedSilver{
-	vec4{0.23125, 0.23125, 0.23125, 1},
-	vec4{0.2775, 0.2775, 0.2775, 1},
-	vec4{0.773911, 0.773911, 0.773911, 1},
-	89.6f
-};
 
-const Material turquoise{
-	vec4{ 0.1, 0.18725, 0.1745, 0.8 },
-	vec4{ 0.396, 0.74151, 0.69102, 0.8 },
-	vec4{ 0.297254, 0.30829, 0.306678, 0.8 },
-	12.8f
-};
 
+// Create material
 const Material bone{
 	vec4{ 0.227, 0.218, 0.201, 1 },
 	vec4{ 0.9, 0.829, 0.829, 1 },
@@ -199,7 +179,6 @@ void createContext() {
 
 	shaderProgram = loadShaders("shaders/ShadowMapping.vertexshader", "shaders/ShadowMapping.fragmentshader");
 	depthProgram = loadShaders("shaders/Depth.vertexshader", "shaders/Depth.fragmentshader");
-	miniMapProgram = loadShaders("shaders/SimpleTexture.vertexshader", "shaders/SimpleTexture.fragmentshader");
 	fireProgram = loadShaders("shaders/Fire.vertexshader", "shaders/Fire.fragmentshader");
 	explosionProgram = loadShaders("shaders/Explosion.vertexshader", "shaders/Explosion.fragmentshader");
 	ruinsProgram = loadShaders("shaders/Ruins.vertexshader", "shaders/Ruins.fragmentshader");
@@ -234,10 +213,6 @@ void createContext() {
 	shadowModelLocation = glGetUniformLocation(depthProgram, "M");
 	shadowOffsets = glGetUniformLocation(depthProgram, "offsets");
 
-
-	// --- miniMapProgram ---
-	quadTextureSamplerLocation = glGetUniformLocation(miniMapProgram, "textureSampler");
-	
 	// ---fireProgram ---
 	fireProjAndView = glGetUniformLocation(fireProgram, "PV");
 	fireSampler = glGetUniformLocation(fireProgram, "texture0");
@@ -259,32 +234,10 @@ void createContext() {
 	stone = new Stone();
 	plane = new Floor();
 	tower = new Tower();
-	//dragon = new Dragon();
 	spider = new Spider();
 	snake = new Snake();
 	mountain = new Mountain();
 	
-
-	//minimap
-	vector<vec3> quadVertices = {
-	  vec3(0.5, 0.5, 0.0),
-	  vec3(1.0, 0.5, 0.0),
-	  vec3(1.0, 1.0, 0.0),
-	  vec3(1.0, 1.0, 0.0),
-	  vec3(0.5, 1.0, 0.0),
-	  vec3(0.5, 0.5, 0.0)
-	};
-
-	vector<vec2> quadUVs = {
-	  vec2(0.0, 0.0),
-	  vec2(1.0, 0.0),
-	  vec2(1.0, 1.0),
-	  vec2(1.0, 1.0),
-	  vec2(0.0, 1.0),
-	  vec2(0.0, 0.0)
-	};
-
-	quad = new Drawable(quadVertices, quadUVs);
 
 
 	//  ANIMATION
@@ -295,7 +248,6 @@ void createContext() {
 	model_mat_location = glGetUniformLocation(assimp_shader, "model");
 	view_mat_location = glGetUniformLocation(assimp_shader, "view");
 	proj_mat_location = glGetUniformLocation(assimp_shader, "proj");
-	//printf("monkey bone count %i\n", first_animation->bone_count);
 
 	char name[64];
 	for (int i = 0; i < MAX_BONES; i++) {
@@ -306,7 +258,7 @@ void createContext() {
 
 
 	// ---------------------------------------------------------------------------- //
-	// -  Task 3.2 Create a depth framebuffer and a texture to store the depthmap - //
+	// -  Create a depth framebuffer and a texture to store the depthmap - //
 	// ---------------------------------------------------------------------------- //
 	//*/
 	// Tell opengl to generate a framebuffer
@@ -324,25 +276,11 @@ void createContext() {
 		GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);							// Task 4.5 Texture wrapping methods
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);							// GL_REPEAT, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER
-	//*/
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);							
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);							
+	
 
-	// Task 4.5 Don't shadow area out of light's viewport
-	/*/
-	// Step 1 : (Don't forget to comment out the respective lines above
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	// Set color to set out of border 
-	float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	// Next go to fragment shader and add an iff statement, so if the distance in the z-buffer is equal to 1, 
-	// meaning that the fragment is out of the texture border (or further than the far clip plane) 
-	// then the shadow value is 0.
-	//*/
-
-	//*/ Task 3.2 Continue
-	// Attaching the texture to the framebuffer, so that it will monitor the depth component
+	//*/Continue attaching the texture to the framebuffer, so that it will monitor the depth component
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
 	
 
@@ -369,7 +307,11 @@ void free() {
 	// Delete Shader Programs
 	glDeleteProgram(shaderProgram);
 	glDeleteProgram(depthProgram);
-	glDeleteProgram(miniMapProgram);
+	glDeleteProgram(fireProgram);
+	glDeleteProgram(explosionProgram);
+	glDeleteProgram(ruinsProgram);
+	glDeleteProgram(assimp_shader);
+
 
 	glfwTerminate();
 }
@@ -408,10 +350,6 @@ void depth_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &mountain->modelMatrix[0][0]);
 	mountain->draw();
 
-	////DRAGON
-	//glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &dragon->modelMatrix[0][0]);
-	//dragon->draw();
-
 	//SPIDER
 	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &spider->modelMatrix[0][0]);
 	glUniformMatrix4fv(shadowOffsets, 2, GL_FALSE, &spider->instancing[0][0][0]);
@@ -419,7 +357,6 @@ void depth_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	//SNAKE
 	glUniformMatrix4fv(shadowModelLocation, 1, GL_FALSE, &snake->modelMatrix[0][0]);
-	//glUniformMatrix4fv(shadowOffsets, 3, GL_FALSE, &skeletonInstancing[0][0][0]);
 	snake->draw();
 
 
@@ -515,21 +452,6 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 
 	tower->draw();
 
-	
-	//DRAGON
-	/*glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &dragon->modelMatrix[0][0]);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, dragon->diffuseTexture);
-	glUniform1i(diffuseColorSampler, 1);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, dragon->specularTexture);
-	glUniform1i(specularColorSampler, 2);
-
-	glUniform1i(useTextureLocation, 1);
-
-	dragon->draw();*/
 
 	
 	//MOUNTAIN
@@ -588,17 +510,6 @@ void lighting_pass(mat4 viewMatrix, mat4 projectionMatrix) {
 }
 
 
-void renderDepthMap() {
-	glUseProgram(miniMapProgram);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, depthTexture);
-	glUniform1i(quadTextureSamplerLocation, 0);
-
-	quad->bind();
-	//quad->draw();
-}
-
 
 void mainLoop() {
 
@@ -616,6 +527,7 @@ void mainLoop() {
 	ExplosionEmitter* e_emitter = new ExplosionEmitter(quad, 1600);
 	e_emitter->emitter_pos = vec3(0.0, 0.0, 0.0);
 
+	// initialize emitter
 	auto* rock = new Drawable("models/rock3.obj");
 	RuinsEmitter* r_emitter = new RuinsEmitter(rock, 1000);
 	r_emitter->emitter_pos = vec3(0.0, 3.0, 0.0);
@@ -626,6 +538,8 @@ void mainLoop() {
 	do {
 		loopNum += 1;
 
+
+		// ANIMATION TIMER
 		static double previous_seconds = glfwGetTime();
 		double current_seconds = glfwGetTime();
 		double elapsed_seconds = current_seconds - previous_seconds;
@@ -672,8 +586,6 @@ void mainLoop() {
 		first_animation->draw();
 
 
-		renderDepthMap();
-
 		// ----------POLL KEYS--------------------------------------------------------------------------------------// 
 		if (glfwGetKey(window, GLFW_KEY_KP_1) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_KP_1) == GLFW_RELEASE) {
 			if (!spider->Run && !spider->Attack) {
@@ -699,6 +611,7 @@ void mainLoop() {
 			if (!dragonAttack) {
 				dragonAttack = true;
 				dragonAttackFirstLoop = loopNum;
+				//override emitter
 				f_emitter = new FireEmitter(quad, 1600);
 				f_emitter->emitter_pos = vec3(-8.7, 10.2, -8.7);
 			}
@@ -707,10 +620,12 @@ void mainLoop() {
 			if (!tower->Attack) {
 				tower->Attack = true;
 				tower->attackFirstLoop = loopNum;
+				//override emitter
 				e_emitter = new ExplosionEmitter(quad, 1600);
 				e_emitter->emitter_pos = vec3(0.0, 0.0, 0.0);
 			}
 		}
+
 
 		// ----------CHECK RUN--------------------------------------------------------------------------------------// 
 		if (spider->Run == true) {
@@ -796,6 +711,7 @@ void mainLoop() {
 			}
 		}
 
+
 		// ----------CHECK REVIVE--------------------------------------------------------------------------------------// 
 		if (stone->dead == true) {
 			stone->revive(loopNum);
@@ -807,8 +723,8 @@ void mainLoop() {
 			spider->revive(loopNum);
 		}
 
+
 		// ----------CHECK TOWER HP--------------------------------------------------------------------------------------//
-		
 		if (tower->hp <= 0) {
 			static int start = loopNum;
 			glUseProgram(ruinsProgram);
@@ -819,7 +735,7 @@ void mainLoop() {
 			r_emitter->updateParticles(currentTime, dt, camera->pos);
 			r_emitter->renderParticles();
 			if (loopNum - start == 150) {
-				stop = true;
+				stop = true; // TIME TO STOP THE GAME
 			}
 			tower->modelMatrix = translate(mat4(), vec3(shake, -0.1, shake)) * tower->modelMatrix;
 			shake = -shake;
@@ -890,9 +806,6 @@ void initialize() {
 	glEnable(GL_PROGRAM_POINT_SIZE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	// Cull triangles which normal is not towards the camera
-	 //glEnable(GL_CULL_FACE);
 
 	// enable texturing and bind the depth texture
 	glEnable(GL_TEXTURE_2D);

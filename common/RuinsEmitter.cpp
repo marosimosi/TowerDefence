@@ -24,27 +24,14 @@ void RuinsEmitter::updateParticles(float time, float dt, glm::vec3 camera_pos) {
     for(int i = 0; i < active_particles; i++){
         particleAttributes & particle = p_attributes[i];
 
-        /*if(particle.life == 0.0f || particle.position.y < height_threshold){
-            createNewParticle(i);
-        }*/
-
-        //particle.accel = glm::vec3(-particle.position.x, 0.0f, -particle.position.z); //gravity force
-
-        //particle.rot_angle += 90*dt; 
-
         particle.position = particle.position + particle.velocity*dt + particle.accel*(dt*dt)*0.5f;
         particle.velocity = particle.velocity + particle.accel*dt;
 
-
-        //particle.life = (height_threshold - particle.position.y) / (height_threshold - emitter_pos.y);
 
         if (particle.position.y < 0.5f && ( abs(particle.position.x) > 0.2f || abs(particle.position.z) > 0.2f) ) {
             particle.velocity = glm::vec3(0.0f, 0.0f, 0.0f);
             particle.accel = glm::vec3(0.0f, 0.0f, 0.0f);
         }
-
-        //if (particle.life > 0.3) { particle.mass += 0.01; }
-        //if (particle.life > 0.6) { particle.mass += 0.02; }
     }
 }
 
